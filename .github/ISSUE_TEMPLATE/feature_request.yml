@@ -1,0 +1,20 @@
+---
+name: Feature request
+description: New idea for KT1
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea / Idea
+      placeholder: What + why + which page (Face/Exercise/Pomodoro/Plants/Chat/PC-agent)?
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: Works without new sensors (all sensors are optional)
+        - label: I can update docs EN+ES
+---

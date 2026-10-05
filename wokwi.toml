@@ -1,0 +1,10 @@
+# Wokwi simulation — try KT1 logic without hardware
+# Open: https://wokwi.com/new/esp32-s3-devkitc-1 (import diagram.json from this folder)
+#
+# LIMITATION (honest): Wokwi has no Freenove FNK0104B (ILI9341 2.8" + FT6336U + ES8311).
+# This diagram uses the closest generic parts so you can test the LOGIC:
+#   - ESP32-S3-DevKitC-1 + ILI9341 TFT + MPU6050 + DHT11 + TTP223-style pushbutton.
+# On real hardware use the FNK0104B wiring in docs/en/hardware.md §3.
+[wokwi]
+version = 1
+generatedBy = "KT1"

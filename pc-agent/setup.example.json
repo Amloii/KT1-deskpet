@@ -1,0 +1,13 @@
+{
+  "esp": "http://kt1.local",
+  "port": 8750,
+  "todo": "C:\\path\\to\\TODO.md",
+  "token": "",
+  "pc_ip": "",
+  "opencode_cli": "",
+  "reminders": [],
+  "firmware": {
+    "version": "",
+    "file": ""
+  }
+}

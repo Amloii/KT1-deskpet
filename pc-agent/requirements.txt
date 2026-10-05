@@ -1,0 +1,8 @@
+pywin32>=306
+psutil>=5.9
+requests>=2.31
+flask>=3.0
+mss>=9.0            # screen capture (chatbot vision tool)
+pillow>=10.0        # scales /screen/shot down to a 320x240 JPEG
+pycaw>=20240201     # master volume (GET/POST /media/volume)
+comtypes>=1.2       # COM init per thread for pycaw (imported directly by bridge.py)

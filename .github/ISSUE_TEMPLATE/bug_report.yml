@@ -1,0 +1,25 @@
+---
+name: Bug report
+description: Something does not work
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / ¿Qué pasó?
+      placeholder: Serial log excerpt + photo of wiring if hardware-related
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment / Entorno
+      placeholder: "board FNK0104B, Arduino IDE 2.x / PlatformIO, core 3.1.1, with/without sensors"
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy / Privacidad
+      options:
+        - label: No secrets, Wi-Fi names, IPs or tokens in this report
+          required: true
+---

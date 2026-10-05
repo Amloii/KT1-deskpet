@@ -1,0 +1,30 @@
+# --- Secrets / secretos (never commit / nunca subir) ---
+secrets.h
+secrets.h.*
+!secrets.example.h
+
+# --- pc-agent local state / estado local ---
+pc-agent/setup.json
+pc-agent/audit.log
+pc-agent/memory.json
+pc-agent/firmware/*.bin
+*.log
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+build/
+dist/
+*.spec
+
+# --- Arduino / IDE ---
+firmware/**/build/
+.vscode/
+.idea/
+
+# --- OS ---
+Thumbs.db
+Desktop.ini
+.DS_Store

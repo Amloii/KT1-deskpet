@@ -1,0 +1,37 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Create dummy secrets.h for CI compile
+        run: |
+          cp firmware/kt1-deskpet/secrets.example.h firmware/kt1-deskpet/secrets.h
+      - name: Install PlatformIO
+        run: pip install platformio
+      - name: Compile firmware (no OTA env)
+        run: pio run -e kt1
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kt1-firmware
+          path: .pio/build/kt1/firmware.bin
+
+  pc-agent:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Syntax check pc-agent
+        run: python -m compileall -q pc-agent
