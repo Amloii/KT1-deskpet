@@ -16,7 +16,7 @@ ESP32-S3 · 2.8" touch screen · voice · sensors · Windows companion
 
 > 🧪 No hardware yet? Try the logic in your browser: import `diagram.json` into [Wokwi](https://wokwi.com/new/esp32-s3-devkitc-1) (generic ESP32-S3 + ILI9341 + MPU6050 + DHT + button; the real FNK0104B wiring is in [hardware.md](docs/en/hardware.md#3-wiring-map)).
 
-**English** | [Español](README.es.md)
+[![English](https://img.shields.io/badge/English-you_are_here-green)](README.md) [![Español](https://img.shields.io/badge/Espa%C3%B1ol-leer_en_espa%C3%B1ol-lightgrey)](README.es.md)
 
 [Demo](#demo) · [Features](#features) · [Components](#components) · [Wiring](#wiring) · [Installation](#installation) · [Docs](#documentation)
 
@@ -194,3 +194,11 @@ ES8311 driver © Espressif Systems (Apache-2.0). Board support by
 ## License
 
 [MIT](LICENSE) — except the ES8311 driver files (Apache-2.0, see their headers).
+
+---
+
+<div align="center">
+
+[![English](https://img.shields.io/badge/English-you_are_here-green)](README.md) [![Español](https://img.shields.io/badge/Espa%C3%B1ol-leer_en_espa%C3%B1ol-lightgrey)](README.es.md)
+
+</div>

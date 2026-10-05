@@ -16,7 +16,7 @@ ESP32-S3 · pantalla táctil de 2,8" · voz · sensores · compañero para Windo
 
 > 🧪 ¿Sin hardware todavía? Prueba la lógica en tu navegador: importa `diagram.json` en [Wokwi](https://wokwi.com/new/esp32-s3-devkitc-1) (ESP32-S3 genérico + ILI9341 + MPU6050 + DHT + botón; el cableado real del FNK0104B está en [hardware.md](docs/es/hardware.md#3-mapa-de-conexiones)).
 
-[English](README.md) | **Español**
+[![English](https://img.shields.io/badge/English-read_in_english-lightgrey)](README.md) [![Español](https://img.shields.io/badge/Espa%C3%B1ol-est%C3%A1s_aqu%C3%AD-green)](README.es.md)
 
 [Demo](#demo) · [Funciones](#funciones) · [Componentes](#componentes) · [Conexiones](#conexiones) · [Instalación](#instalación) · [Documentación](#documentación)
 
@@ -194,3 +194,11 @@ Driver ES8311 © Espressif Systems (Apache-2.0). Soporte de la placa por
 ## Licencia
 
 [MIT](LICENSE) — excepto los archivos del driver ES8311 (Apache-2.0, ver sus cabeceras).
+
+---
+
+<div align="center">
+
+[![English](https://img.shields.io/badge/English-read_in_english-lightgrey)](README.md) [![Español](https://img.shields.io/badge/Espa%C3%B1ol-est%C3%A1s_aqu%C3%AD-green)](README.es.md)
+
+</div>
