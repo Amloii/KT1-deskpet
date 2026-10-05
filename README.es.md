@@ -8,11 +8,10 @@
 [![Build](https://github.com/danigtalh/kt1-deskpet/actions/workflows/build.yml/badge.svg)](https://github.com/danigtalh/kt1-deskpet/actions/workflows/build.yml)
 [![Docs EN/ES](https://img.shields.io/badge/docs-EN%20%7C%20ES-lightgrey.svg)](docs/es/installation.md)
 
-**Un compañero de escritorio con ojos expresivos que te hace moverte, te ayuda a concentrarte y habla contigo.**
+**Un compañero de escritorio con ojos expresivos que te insiste en que te levantes y te contesta cuando le hablas.**
 ESP32-S3 · pantalla táctil de 2,8" · voz · sensores · compañero para Windows
 
 ![Arquitectura](docs/media/architecture.svg)
-![Conexiones](docs/media/wiring.svg)
 
 > 🧪 ¿Sin hardware todavía? Prueba la lógica en tu navegador: importa `diagram.json` en [Wokwi](https://wokwi.com/new/esp32-s3-devkitc-1) (ESP32-S3 genérico + ILI9341 + MPU6050 + DHT + botón; el cableado real del FNK0104B está en [hardware.md](docs/es/hardware.md#3-mapa-de-conexiones)).
 
@@ -24,7 +23,16 @@ ESP32-S3 · pantalla táctil de 2,8" · voz · sensores · compañero para Windo
 
 ---
 
+KT1 se pone junto al teclado y te mira trabajar. Los ojos te siguen el dedo, se inclinan
+cuando inclinas la placa y se desenfocan si la agitas. Lleva la cuenta del rato que
+llevas sentado y te avisa para que te levantes. Te gestiona los pomodoros, mira si a tu
+planta le llega luz suficiente y te contesta en voz alta cuando le preguntas. Si tienes
+el micro abierto se calla hasta que termina la llamada.
+
 ## Demo
+
+<details>
+<summary>🎬 Seis clips, grabaciones pendientes</summary>
 
 <!--
   HUECOS PARA VÍDEOS: arrastra cada .mp4 al editor web de GitHub en esta línea (GitHub lo
@@ -33,22 +41,24 @@ ESP32-S3 · pantalla táctil de 2,8" · voz · sensores · compañero para Windo
 -->
 
 ### 1. Vista general
-> 🎬 **Vídeo pendiente** — *KT1 en el escritorio: cara, páginas y navegación.*
+> 🎬 **Vídeo pendiente**: *KT1 en el escritorio: cara, páginas y navegación.*
 
 ### 2. Estados de ánimo, inclinación y caricias
-> 🎬 **Vídeo pendiente** — *estados de ánimo, ojos que siguen la inclinación (IMU), mareo al agitarlo, caricias con el sensor táctil.*
+> 🎬 **Vídeo pendiente**: *estados de ánimo, ojos que siguen la inclinación (IMU), mareo al agitarlo, caricias con el sensor táctil.*
 
 ### 3. Ciclo de ejercicio y pausa activa
-> 🎬 **Vídeo pendiente** — *aviso de postura, entrenador con cuenta atrás y pitidos por repetición.*
+> 🎬 **Vídeo pendiente**: *aviso de postura, entrenador con cuenta atrás y pitidos por repetición.*
 
 ### 4. Pomodoro y plantas
-> 🎬 **Vídeo pendiente** — *modo pomodoro y una medición de planta.*
+> 🎬 **Vídeo pendiente**: *modo pomodoro y una medición de planta.*
 
 ### 5. Asistente de voz y control del PC
-> 🎬 **Vídeo pendiente** — *pregunta por voz, respuesta hablada y un comando al PC (volumen, abrir app…).*
+> 🎬 **Vídeo pendiente**: *pregunta por voz, respuesta hablada y un comando al PC (volumen, abrir app…).*
 
 ### 6. Cambio de idioma
-> 🎬 **Vídeo pendiente** — *cambio English ↔ Español en la página Pantalla (Screen).*
+> 🎬 **Vídeo pendiente**: *cambio English ↔ Español en la página Pantalla.*
+
+</details>
 
 ---
 
@@ -56,9 +66,9 @@ ESP32-S3 · pantalla táctil de 2,8" · voz · sensores · compañero para Windo
 
 - 👀 **Ojos expresivos** dibujados en tiempo real: 10 estados de ánimo, parpadeo, gestos en reposo;
   siguen tu dedo y la inclinación del dispositivo, y se marean si lo agitas.
-- 🧍 **Entrenador de movimiento** para mesas elevables: 20 min sentado → 8 min de pie → 2 min de
+- 🧍 **Entrenador de movimiento** para escritorios elevables: 20 min sentado → 8 min de pie → 2 min de
   movimiento (Cornell), pausas activas guiadas con mancuernas o movilidad, estadísticas diarias.
-- 🍅 **Pomodoro** con modos *Trabajo / Escritura / Ocio* y ánimos suaves.
+- 🍅 **Pomodoro** con modos *Trabajo / Escritura / Ocio* y mensajes de ánimo discretos.
 - 🪴 **Plantas**: mide luz, temperatura y humedad y te dice si el sitio le viene bien a tu
   planta.
 - 🌤️ **Tiempo** (Open-Meteo, sin clave) y **reloj** sincronizado por NTP.
@@ -85,6 +95,8 @@ Lista completa, pines de la placa y notas de seguridad: **[docs/es/hardware.md](
 
 ## Conexiones
 
+![Conexiones](docs/media/wiring.svg)
+
 | Módulo | Pin del módulo → Placa |
 |---|---|
 | GY-521 | VCC → **3V3** · GND → **GND** · SDA → **IO16** · SCL → **IO15** (conector I2C de la placa) |
@@ -99,14 +111,16 @@ Lista completa, pines de la placa y notas de seguridad: **[docs/es/hardware.md](
 
 Versión rápida (tutorial paso a paso con comprobaciones en **[docs/es/installation.md](docs/es/installation.md)**):
 
-**Opción A — PlatformIO (recomendado, un comando):**
+**Opción A: PlatformIO** (recomendado, un comando)
 ```bash
 pip install platformio
 cp firmware/kt1-deskpet/secrets.example.h firmware/kt1-deskpet/secrets.h
 pio run -e kt1   # build Huge APP; usa -e kt1-ota para actualizaciones inalámbricas
 ```
+En PowerShell, sustituye la línea del `cp` por
+`copy firmware\kt1-deskpet\secrets.example.h firmware\kt1-deskpet\secrets.h`.
 
-**Opción B — Arduino IDE 2.x:**
+**Opción B: Arduino IDE 2.x**
 
 1. Arduino IDE 2.x + núcleo **esp32** 3.x; librerías **TFT_eSPI** (configuración de Freenove), **ArduinoJson 7**,
    **Freenove WS2812**, **ESP32-audioI2S 2.0.0**.
@@ -129,30 +143,30 @@ pio run -e kt1   # build Huge APP; usa -e kt1-ota para actualizaciones inalámbr
 ## Cómo funciona
 
 ```
- ┌──────────────── KT1 (ESP32-S3) ────────────────┐         ┌──────────── Windows PC ────────────┐
- │ core 1: touch · pages · cycle · coach · render  │  HTTP   │ pet_agent.py  app / idle / mic in   │
- │ core 0: Wi-Fi · NTP · weather · web server      │◄───────►│   use → POST /pet                   │
- │         IMU 100 Hz · sound queue (ES8311)       │         │ bridge.py  :8750  volume, apps,     │
- │ chat: mic → Gemini (+PC screenshot) → TTS       │────────►│   TODO, reminders, memory, OTA,     │
- └─────────────────────────────────────────────────┘         │   OpenCode CLI                      │
-            │ HTTPS                                           └─────────────────────────────────────┘
+ ┌───────────────────── KT1 (ESP32-S3) ─────────────────────┐         ┌───────── PC con Windows ──────────┐
+ │ núcleo 1: táctil · páginas · ciclo · entrenador · render │  HTTP   │ pet_agent.py  app / inactividad / │
+ │ núcleo 0: Wi-Fi · NTP · tiempo · servidor web            │◄───────►│   micro en uso → POST /pet        │
+ │           IMU 100 Hz · cola de sonido (ES8311)           │         │ bridge.py  :8750  volumen, apps,  │
+ │ chat: micro → Gemini (+captura del PC) → TTS             │────────►│   tareas, recordatorios, memoria, │
+ └──────────────────────────────────────────────────────────┘         │   OTA, OpenCode CLI               │
+            │ HTTPS                                                   └───────────────────────────────────┘
             ▼
    Open-Meteo · Google Gemini · Google Translate TTS · NTP
 ```
 
 ```
-firmware/kt1-deskpet/   Arduino sketch (.ino + modules .h)
-  lang.h          UI languages (TR("English", "Spanish"))
-  exercises.h     editable exercise library
-  secrets.example.h   template → copy to secrets.h (git-ignored)
-pc-agent/         Windows companion (Python): bridge.py, pet_agent.py, setup.py, watchdog.py
-docs/en, docs/es  documentation in both languages · docs/media: videos
+firmware/kt1-deskpet/   sketch de Arduino (.ino + módulos .h)
+  lang.h          idiomas de la interfaz (TR("texto en inglés", "texto en español"))
+  exercises.h     biblioteca de ejercicios editable
+  secrets.example.h   plantilla → copiar a secrets.h (ignorado por git)
+pc-agent/         compañero de Windows (Python): bridge.py, pet_agent.py, setup.py, watchdog.py
+docs/en, docs/es  documentación en los dos idiomas · docs/media: vídeos
 ```
 
 ## Privacidad y seguridad
 
-- Los secretos solo están en `secrets.h` y `pc-agent/setup.json`, ambos ignorados por git, igual que
-  el firmware compilado `.bin` (lleva tus credenciales incrustadas), `audit.log` y `memory.json`.
+- Los secretos solo están en `secrets.h` y `pc-agent/setup.json`. Los dos están ignorados por git,
+  igual que el firmware compilado `.bin` (lleva tus credenciales incrustadas), `audit.log` y `memory.json`.
 - El chat de voz envía el audio y una captura de pantalla del PC a Google Gemini, y el texto de la
   respuesta a Google Translate TTS. Sin clave de Gemini no se envía nada.
 - `bridge.py` escucha en tu red local por HTTP sin cifrar, protegido por un token
@@ -169,18 +183,19 @@ docs/en, docs/es  documentation in both languages · docs/media: videos
 
 ## Proyectos similares y créditos
 
-KT1 no es otra demo de "ojos": añade entrenador de movimiento Cornell 20-8-2, pomodoro,
-medición de plantas y compañero de voz para Windows que respeta llamadas/escritura (DND,
-prompts a OpenCode) en un FNK0104B con táctil + voz.
+Ya hay varias mascotas de escritorio que dibujan buenos ojos. Lo que añade KT1 encima es
+salud postural: entrenador de movimiento Cornell 20-8-2, pomodoro, medición de plantas y
+un compañero de voz para Windows que se calla durante las llamadas y mientras escribes y
+sabe mandar prompts a OpenCode, todo en un FNK0104B con táctil + voz.
 
 | Proyecto | Estrellas* | En qué destaca | Diferencia de KT1 |
 |---|---|---|---|
 | [78/xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) | ~30k | Voz LLM en 138 placas, OTA + flasheo web, gran comunidad | Una sola placa, entrenador + plantas + pomodoro |
 | [playfultechnology/esp32-eyes](https://github.com/playfultechnology/esp32-eyes) | ~370 | Librería de ojos reutilizable, esquema + API | Producto completo: páginas, entrenador, voz, PC agent |
-| [SukunDev/ESP32-Pet-Robot](https://github.com/SukunDev/ESP32-Pet-Robot) | ~24 | Simulador Wokwi, barrera baja | Misma idea + Wokwi (`diagram.json`) + placa táctil/voz |
+| [SukunDev/ESP32-Pet-Robot](https://github.com/SukunDev/ESP32-Pet-Robot) | ~24 | Simulador Wokwi, barrera de entrada baja | Misma idea + Wokwi (`diagram.json`) + placa táctil/voz |
 | [FamousWolf/deskbuddy](https://github.com/FamousWolf/deskbuddy) | ~13 | ESPHome + medidor de felicidad en Home Assistant | Autónomo + voz Gemini + control dev con OpenCode |
 
-\* Estrellas al escribir esto (oct 2026), para posicionar — no para competir.
+\* Estrellas contadas en octubre de 2026, como referencia.
 
 Ideas y estructura de la documentación inspiradas en otros compañeros de escritorio:
 [playfultechnology/esp32-eyes](https://github.com/playfultechnology/esp32-eyes),
@@ -193,7 +208,7 @@ Driver ES8311 © Espressif Systems (Apache-2.0). Soporte de la placa por
 
 ## Licencia
 
-[MIT](LICENSE) — excepto los archivos del driver ES8311 (Apache-2.0, ver sus cabeceras).
+[MIT](LICENSE), excepto los archivos del driver ES8311 (Apache-2.0, ver sus cabeceras).
 
 ---
 

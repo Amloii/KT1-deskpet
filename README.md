@@ -1,6 +1,6 @@
 <div align="center">
 
-# KT1 DeskPet · mascota de escritorio
+# KT1 DeskPet · desk companion
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![ESP32-S3](https://img.shields.io/badge/ESP32--S3-2.8%22%20touch-blue.svg)](docs/en/hardware.md)
@@ -8,11 +8,10 @@
 [![Build](https://github.com/danigtalh/kt1-deskpet/actions/workflows/build.yml/badge.svg)](https://github.com/danigtalh/kt1-deskpet/actions/workflows/build.yml)
 [![Docs EN/ES](https://img.shields.io/badge/docs-EN%20%7C%20ES-lightgrey.svg)](docs/en/installation.md)
 
-**A desk companion with expressive eyes that gets you moving, keeps you focused and talks to you.**
+**A desk companion with expressive eyes that nags you to stand up and answers when you talk to it.**
 ESP32-S3 · 2.8" touch screen · voice · sensors · Windows companion
 
 ![Architecture](docs/media/architecture.svg)
-![Wiring overview](docs/media/wiring.svg)
 
 > 🧪 No hardware yet? Try the logic in your browser: import `diagram.json` into [Wokwi](https://wokwi.com/new/esp32-s3-devkitc-1) (generic ESP32-S3 + ILI9341 + MPU6050 + DHT + button; the real FNK0104B wiring is in [hardware.md](docs/en/hardware.md#3-wiring-map)).
 
@@ -24,7 +23,16 @@ ESP32-S3 · 2.8" touch screen · voice · sensors · Windows companion
 
 ---
 
+KT1 sits next to your keyboard and watches you work. Its eyes follow your finger, lean
+when you lean the board, and go unfocused if you shake it. It keeps count of how long you
+have been sitting and tells you to get up. It runs your pomodoros, checks whether your
+plant is getting enough light, and answers out loud when you ask it something. If your
+microphone is live it stays quiet until the call is over.
+
 ## Demo
+
+<details>
+<summary>🎬 Six clips, recordings pending</summary>
 
 <!--
   VIDEO SLOTS: drag each .mp4 into the GitHub web editor on this line (GitHub turns it
@@ -33,22 +41,24 @@ ESP32-S3 · 2.8" touch screen · voice · sensors · Windows companion
 -->
 
 ### 1. Overview
-> 🎬 **Video pending** — *KT1 on the desk: face, pages and navigation.*
+> 🎬 **Video pending**: *KT1 on the desk: face, pages and navigation.*
 
 ### 2. Moods, tilt and petting
-> 🎬 **Video pending** — *moods, eyes following the tilt (IMU), dizzy on shake, petting with the touch sensor.*
+> 🎬 **Video pending**: *moods, eyes following the tilt (IMU), dizzy on shake, petting with the touch sensor.*
 
 ### 3. Exercise cycle and active break
-> 🎬 **Video pending** — *posture nudge, coach with countdown and rep beeps.*
+> 🎬 **Video pending**: *posture nudge, coach with countdown and rep beeps.*
 
 ### 4. Pomodoro and plants
-> 🎬 **Video pending** — *pomodoro mode and a plant measurement.*
+> 🎬 **Video pending**: *pomodoro mode and a plant measurement.*
 
 ### 5. Voice assistant and PC control
-> 🎬 **Video pending** — *voice question, spoken answer and a PC command (volume, open app…).*
+> 🎬 **Video pending**: *voice question, spoken answer and a PC command (volume, open app…).*
 
 ### 6. Language switch
-> 🎬 **Video pending** — *changing English ↔ Español on the Screen page.*
+> 🎬 **Video pending**: *changing English ↔ Español on the Screen page.*
+
+</details>
 
 ---
 
@@ -85,6 +95,8 @@ Full list, board pinout and safety notes: **[docs/en/hardware.md](docs/en/hardwa
 
 ## Wiring
 
+![Wiring overview](docs/media/wiring.svg)
+
 | Module | Module pin → Board |
 |---|---|
 | GY-521 | VCC → **3V3** · GND → **GND** · SDA → **IO16** · SCL → **IO15** (board I2C connector) |
@@ -99,14 +111,16 @@ Full list, board pinout and safety notes: **[docs/en/hardware.md](docs/en/hardwa
 
 Quick version (step-by-step tutorial with checks in **[docs/en/installation.md](docs/en/installation.md)**):
 
-**Option A — PlatformIO (recommended, one command):**
+**Option A: PlatformIO** (recommended, one command)
 ```bash
 pip install platformio
 cp firmware/kt1-deskpet/secrets.example.h firmware/kt1-deskpet/secrets.h
 pio run -e kt1   # Huge APP build; use -e kt1-ota for wireless updates
 ```
+On PowerShell, replace the `cp` line with
+`copy firmware\kt1-deskpet\secrets.example.h firmware\kt1-deskpet\secrets.h`.
 
-**Option B — Arduino IDE 2.x:**
+**Option B: Arduino IDE 2.x**
 
 1. Arduino IDE 2.x + **esp32** core 3.x; libraries **TFT_eSPI** (Freenove setup), **ArduinoJson 7**,
    **Freenove WS2812**, **ESP32-audioI2S 2.0.0**.
@@ -129,13 +143,13 @@ pio run -e kt1   # Huge APP build; use -e kt1-ota for wireless updates
 ## How it works
 
 ```
- ┌──────────────── KT1 (ESP32-S3) ────────────────┐         ┌──────────── Windows PC ────────────┐
- │ core 1: touch · pages · cycle · coach · render  │  HTTP   │ pet_agent.py  app / idle / mic in   │
- │ core 0: Wi-Fi · NTP · weather · web server      │◄───────►│   use → POST /pet                   │
- │         IMU 100 Hz · sound queue (ES8311)       │         │ bridge.py  :8750  volume, apps,     │
- │ chat: mic → Gemini (+PC screenshot) → TTS       │────────►│   TODO, reminders, memory, OTA,     │
- └─────────────────────────────────────────────────┘         │   OpenCode CLI                      │
-            │ HTTPS                                           └─────────────────────────────────────┘
+ ┌──────────────── KT1 (ESP32-S3) ────────────────┐         ┌─────────── Windows PC ────────────┐
+ │ core 1: touch · pages · cycle · coach · render │  HTTP   │ pet_agent.py  app / idle / mic in │
+ │ core 0: Wi-Fi · NTP · weather · web server     │◄───────►│   use → POST /pet                 │
+ │         IMU 100 Hz · sound queue (ES8311)      │         │ bridge.py  :8750  volume, apps,   │
+ │ chat: mic → Gemini (+PC screenshot) → TTS      │────────►│   TODO, reminders, memory, OTA,   │
+ └────────────────────────────────────────────────┘         │   OpenCode CLI                    │
+            │ HTTPS                                         └───────────────────────────────────┘
             ▼
    Open-Meteo · Google Gemini · Google Translate TTS · NTP
 ```
@@ -151,8 +165,8 @@ docs/en, docs/es  documentation in both languages · docs/media: videos
 
 ## Privacy and security
 
-- Secrets live only in `secrets.h` and `pc-agent/setup.json`, both git-ignored, as are
-  the compiled firmware `.bin` (it embeds your credentials), `audit.log` and `memory.json`.
+- Secrets live only in `secrets.h` and `pc-agent/setup.json`. Both are git-ignored, along
+  with the compiled firmware `.bin` (it embeds your credentials), `audit.log` and `memory.json`.
 - The voice chat sends audio and a PC screenshot to Google Gemini and the answer text to
   Google Translate TTS. Without a Gemini key nothing is sent.
 - `bridge.py` listens on your LAN over plain HTTP, protected by a token
@@ -169,9 +183,10 @@ docs/en, docs/es  documentation in both languages · docs/media: videos
 
 ## Similar projects and credits
 
-KT1 is not another "eyes demo": it adds a Cornell 20-8-2 movement coach, pomodoro,
-plant sensing and a Windows presence-aware voice companion (DND on calls/typing,
-OpenCode prompts) on a touch + voice FNK0104B.
+Several desk pets already draw good eyes. What KT1 adds on top is desk health: a Cornell
+20-8-2 movement coach, pomodoro, plant sensing and a Windows voice companion that goes
+quiet during calls and typing and can send prompts to OpenCode, all on a touch + voice
+FNK0104B.
 
 | Project | Stars* | What it does well | KT1 difference |
 |---|---|---|---|
@@ -180,7 +195,7 @@ OpenCode prompts) on a touch + voice FNK0104B.
 | [SukunDev/ESP32-Pet-Robot](https://github.com/SukunDev/ESP32-Pet-Robot) | ~24 | Wokwi simulator, low entry barrier | Same idea + Wokwi (`diagram.json`) + touch/voice board |
 | [FamousWolf/deskbuddy](https://github.com/FamousWolf/deskbuddy) | ~13 | ESPHome + Home Assistant happiness meter | Standalone + Gemini voice + OpenCode dev control |
 
-\* Stars at time of writing (Oct 2026), to show positioning — not to compete.
+\* Star counts from October 2026, for context.
 
 Ideas and documentation structure inspired by other desk companions:
 [playfultechnology/esp32-eyes](https://github.com/playfultechnology/esp32-eyes),
@@ -193,7 +208,7 @@ ES8311 driver © Espressif Systems (Apache-2.0). Board support by
 
 ## License
 
-[MIT](LICENSE) — except the ES8311 driver files (Apache-2.0, see their headers).
+[MIT](LICENSE), except for the ES8311 driver files (Apache-2.0, see their headers).
 
 ---
 
