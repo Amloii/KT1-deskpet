@@ -58,6 +58,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 AUDIT_FILE = os.path.join(HERE, "audit.log")
 MEM_FILE = os.path.join(HERE, "memory.json")
 BOOT_TS = time.time()
+# The bridge runs under pythonw (no console): without this flag every child
+# console process opens a terminal window on screen.
+NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 def _audit(action, detail=""):
@@ -129,7 +132,7 @@ def tap_vk(vk):
 
 @app.get("/health")
 def health():
-    oc = oc_status()
+    oc = oc_status_cached()
     try:
         re_ = requests.get(f"{CFG['esp']}/", timeout=2)
         esp = {"reachable": re_.ok}
@@ -154,7 +157,8 @@ def oc_cli(*args, timeout=20):
     cli = CFG["opencode_cli"] or find_occli()
     if not cli or not os.path.isfile(cli):
         raise FileNotFoundError("opencode-cli not found")
-    p = subprocess.run([cli, *args], capture_output=True, timeout=timeout)
+    p = subprocess.run([cli, *args], capture_output=True, timeout=timeout,
+                       creationflags=NO_WINDOW)
     raw = p.stdout
     try:
         # list = utf-8, export = utf-16 with BOM (depends on the subcommand)
@@ -175,6 +179,21 @@ def oc_status():
         return {"reachable": True, "sessions": n}
     except Exception as e:
         return {"reachable": False, "error": type(e).__name__}
+
+
+_OC_CACHE = {"ts": 0.0, "val": {"reachable": False, "error": "cold"}}
+_OC_TTL = 120  # seconds: /health (watchdog, every 60 s) must not spawn
+# opencode-cli on every poll, nor block past the watchdog timeout.
+
+
+def oc_status_cached():
+    now = time.time()
+    if now - _OC_CACHE["ts"] < _OC_TTL and _OC_CACHE["val"]:
+        return _OC_CACHE["val"]
+    val = oc_status()
+    _OC_CACHE["ts"] = now
+    _OC_CACHE["val"] = val
+    return val
 
 
 def oc_list_sessions():
@@ -677,7 +696,7 @@ def _win_toast(title, msg):
         subprocess.run(["powershell", "-NoProfile", "-NonInteractive",
                         "-EncodedCommand", enc],
                        env=env, capture_output=True, timeout=20,
-                       creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                       creationflags=NO_WINDOW)
     except Exception:
         pass
 

@@ -31,7 +31,9 @@ def load_cfg():
 def bridge_ok(port):
     try:
         import requests
-        return requests.get(f"http://127.0.0.1:{port}/health", timeout=5).ok
+        # /health can take ~17 s worst case (15 s opencode-cli + 2 s ESP);
+        # keep the timeout above that so a slow poll is not mistaken for death.
+        return requests.get(f"http://127.0.0.1:{port}/health", timeout=30).ok
     except Exception:
         return False
 
