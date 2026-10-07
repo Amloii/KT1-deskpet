@@ -193,12 +193,11 @@ void drawHeader(const char* title) {
   drawWifiIcon(SCR_W - 20, 18);
   spr.drawFastHLine(8, 23, SCR_W - 16, P.line);
 }
-// Navigation buttons (bottom, on both sides). The touch area is a bit larger than the drawing.
+// Page dots (bottom center). Navigation is swipe-only: no arrow buttons.
+// NAV_TOUCH_Y is kept as a layout guard (page content must end above it).
 #define NAV_Y      210
 #define NAV_H      28
-#define NAV_W      56
-#define NAV_TOUCH_Y 196        // touches below this line count for the buttons
-#define NAV_TOUCH_W 84
+#define NAV_TOUCH_Y 196
 
 void drawArrowButton(int x, int y, int w, int h, bool left) {
   spr.fillRoundRect(x, y, w, h, 8, P.card);
@@ -209,21 +208,11 @@ void drawArrowButton(int x, int y, int w, int h, bool left) {
 }
 
 void drawPageDots() {
-  drawArrowButton(4, NAV_Y, NAV_W, NAV_H, true);
-  drawArrowButton(SCR_W - 4 - NAV_W, NAV_Y, NAV_W, NAV_H, false);
   int sp = 12, x0 = SCR_W / 2 - (PAGE_COUNT - 1) * sp / 2;
   for (int i = 0; i < PAGE_COUNT; i++) {
     if (i == gPage) spr.fillCircle(x0 + i * sp, NAV_Y + NAV_H / 2, 3, P.accent);
     else            spr.drawCircle(x0 + i * sp, NAV_Y + NAV_H / 2, 2, P.inkDim);
   }
-}
-
-// -1 = left button, +1 = right, 0 = none
-int navHit(int x, int y) {
-  if (y < NAV_TOUCH_Y) return 0;
-  if (x < NAV_TOUCH_W) return -1;
-  if (x > SCR_W - NAV_TOUCH_W) return 1;
-  return 0;
 }
 void drawToast() {
   if (millis() > toastUntil || !toastText[0]) return;
@@ -339,6 +328,41 @@ uint16_t phaseColor(Phase p) {
     case PH_AWAY:  return P.inkDim;                     // gray
     default:       return P.inkDim;
   }
+}
+
+// Undimmed base color of each cycle phase (for effects needing own brightness)
+uint16_t phaseColorRaw(Phase p) {
+  switch (p) {
+    case PH_SIT:   return rgb( 96, 165, 250);   // blue
+    case PH_STAND: return C_OK;                  // green
+    case PH_MOVE:  return rgb(251, 146,  60);   // orange
+    case PH_LONG:  return rgb(167, 139, 250);   // purple
+    default:       return C_INKDIM;               // gray (AWAY / OFF)
+  }
+}
+
+// Ambient edge glow on the FACE page: thin pulsing frame in the active phase
+// color (or pomo amber). Idle -> no frame, pure black minimalism.
+void drawPhaseAura() {
+  if (coach.active) return;
+  uint16_t raw;
+  bool hasPhase = (gPhase != PH_OFF);
+  if (hasPhase) raw = phaseColorRaw(gPhase);
+  else if (pomoRunning()) raw = C_WARN;
+  else return;
+  // Flash to full brightness on change, then settle into a slow breathing pulse
+  static int auraLastId = -2;
+  static uint32_t auraT0 = 0;
+  int id = hasPhase ? (int)gPhase : -1;
+  if (id != auraLastId) { auraLastId = id; auraT0 = millis(); }
+  uint32_t dt = millis() - auraT0;
+  uint8_t pl = (dt < 500)
+    ? 255
+    : (uint8_t)(150 + 70 * sinf(millis() / 600.0f));
+  uint16_t c = dim565(raw, pl);
+  int h = nudge.active ? 132 : 162;   // stay above the nudge banner
+  spr.drawRoundRect(6, 28, SCR_W - 12, h, 14, c);
+  spr.drawRoundRect(7, 29, SCR_W - 14, h - 2, 13, c);
 }
 
 // Eye / decoration color by mood (dimmed by brightness)
@@ -602,5 +626,6 @@ void drawNudgeBanner() {
 void drawFacePage() {
   drawStatusBar();
   drawEyesAt(SCR_W / 2, nudge.active ? 96 : 116, nudge.active ? 0.8f : 1.0f);
+  drawPhaseAura();
   drawNudgeBanner();
 }

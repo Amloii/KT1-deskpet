@@ -101,7 +101,7 @@ void startNudge(const char* text, Posture target, Sound snd) {
   nudge.since = nudge.lastRing = millis();
   nudge.rings = 1;
   sound(snd);
-  gPage = PAGE_FACE;
+  setPage(PAGE_FACE, -1, false);   // silent: the nudge banner is the message
   lastInteraction = millis();
   gDirty = true;
   Serial.printf("[FOCUS] Nudge: %s\n", text);
@@ -262,7 +262,7 @@ void sedTick() {
   Serial.printf("[SED] %d min seated in a row -> exercise %s\n", sedEveryMin, EXERCISES[coach.ex].name());
 }
 
-// FOCUS page buttons (above the < >)
+// FOCUS page buttons (above the page dots)
 #define FOCUS_BTN_Y 168
 #define FOCUS_BTN_H 26   // ends at 194: above the nav touch zone (196)
 
@@ -434,7 +434,7 @@ void coachGesture(Gesture g) {
       else if (coach.st == CO_DONE)   coachClose();
       break;
     case G_SWIPE_L:
-    case G_SWIPE_R:                                               // (if your touch reports swipes)
+    case G_SWIPE_R:
       if (coach.st == CO_READY || coach.st == CO_REST) coachSwap(false);
       break;
     case G_SWIPE_D:

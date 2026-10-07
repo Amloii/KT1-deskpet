@@ -16,6 +16,7 @@
 | 8 | Dupont jumper wires (female-female / female-male) | ~14 | With sensors | Connections |
 | 9 | Dumbbells | 1–2 | Optional | Active breaks of the *Exercise* cycle (mobility exercises need none) |
 | 10 | Case (3D printed, PETG recommended) | 1 | Optional | See §6 |
+| 11 | **2-color LED** module (Elegoo kit, GRY pins) | 1 | Optional | Single-color ambient light on IO2: steady on activity, strobe on alerts (see §2) |
 
 Software/services (all optional except the first):
 
@@ -50,6 +51,11 @@ Software/services (all optional except the first):
 
 **Free pins used by KT1:** GPIO **2** (touch sensor), GPIO **14** (DHT11), GPIO **3** (LDR, ADC1).
 Avoid GPIO 21 (pulled to GND on this board) and the pins in the table above.
+
+> **External 2-color LED module (optional, Elegoo kit, GRY):** with only IO2 free, one
+> color is used. G is ground: wire G → **GND**, the chosen color (Y yellow or R red) →
+> **IO2**, leave the other floating. Set `PET_ENABLED 0` and `TWO_LED_ENABLED 1`.
+> Steady = activity (phase, pomo), 4 Hz strobe = alerts, off = idle. Plants stay as they are.
 
 ## 3. Wiring map
 

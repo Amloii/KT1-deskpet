@@ -106,14 +106,13 @@ El resto (clave de Gemini, IP del PC, token del bridge) puede quedarse de moment
 ✅ **Comprobación:** la pantalla muestra los ojos, el reloj aparece en la barra superior y la
 página **Tiempo** (*Weather*) tiene datos. La página de estado del dispositivo está en `http://kt1.local/`.
 
-> La interfaz arranca en **inglés**. Para ponerla en español: flechas ◀ ▶ → página **Pantalla**
-> (*Screen*) → fila **Idioma** (*Language*) → *Espanol*. La elección se guarda.
+> La interfaz arranca en **inglés**. Para ponerla en español: desliza en horizontal hasta la
+> página **Pantalla** (*Screen*) → fila **Idioma** (*Language*) → *Espanol*. La elección se guarda.
 
 ## 6. Comprobar la pantalla táctil
 
-- Toca la flecha **▶** (abajo a la derecha): el nombre de la página siguiente aparece en un aviso emergente.
-- Cada toque imprime `[TOUCH] tap at (x, y)` en el monitor serie. Abajo a la derecha debería salir
-  aproximadamente x ≈ 290, y ≈ 225.
+- Desliza el dedo en horizontal: el nombre de la página siguiente aparece en un aviso emergente.
+- Cada toque imprime `[TOUCH] tap at (x, y)` en el monitor serie.
 - ¿X invertida? Pon `#define TOUCH_FLIP_X 1` en el `.ino`. ¿Y invertida? `TOUCH_FLIP_Y 1`.
 - ¿El conector USB queda en el otro lado? `#define SCREEN_ROTATION 3` (el táctil se adapta).
 

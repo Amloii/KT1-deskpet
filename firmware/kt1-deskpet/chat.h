@@ -192,7 +192,11 @@ static size_t chatRecord(uint32_t fixedMs = 0) {
     if (fixedMs) {
       if (now - t0 >= fixedMs) break;   // button: record N ms and done
     } else {
+#if PET_ENABLED
       if (digitalRead(PET_PIN) == HIGH) lastHeld = now;
+#else
+      lastHeld = now;   // no touch sensor (pin reused, e.g. flash LED): record to max
+#endif
       if (now - t0 > CHAT_MIN_MS && now - lastHeld > 150) break;
       if (now - t0 > (uint32_t)CHAT_REC_MAX_S * 1000) break;
     }
@@ -600,7 +604,7 @@ static void chatApplyPage(const String& page) {
     {"Chat", PAGE_CHAT},
   };
   for (auto& m : map)
-    if (page.equalsIgnoreCase(m.name)) { gPage = m.idx; gDirty = true; toast(PAGE_NAMES[m.idx], 900); return; }
+    if (page.equalsIgnoreCase(m.name)) { setPage(m.idx); return; }
 }
 
 static void chatApplyCmd(String cmd, const char* botText = nullptr) {
@@ -635,7 +639,7 @@ static void chatApplyCmd(String cmd, const char* botText = nullptr) {
       chatToAscii(tip, sizeof(tip), botText);
       strlcpy(pomoTip, tip, sizeof(pomoTip));
     } else pomoTip[0] = 0;
-    gPage = PAGE_POMO;
+    setPage(PAGE_POMO);
     pomoStartFocus();
     if (pomoHasTask) pomoSay(pomoTask, 1600);
     else pomoSay(pomoRelaxLine(), 1800);

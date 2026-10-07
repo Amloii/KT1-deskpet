@@ -106,14 +106,13 @@ The rest (Gemini key, PC IP, bridge token) can stay as in the template for now.
 ✅ **Check:** the screen shows the eyes, the clock appears in the top bar and the
 *Weather* page has data. The device status page is at `http://kt1.local/`.
 
-> The UI starts in **English**. To switch to Spanish: arrows ◀ ▶ → **Screen** page →
-> **Language** row → *Espanol*. The choice is saved.
+> The UI starts in **English**. To switch to Spanish: swipe horizontally to the **Screen**
+> page → **Language** row → *Espanol*. The choice is saved.
 
 ## 6. Check the touch screen
 
-- Tap the **▶** arrow (bottom right): the next page name appears as a toast.
-- Every tap prints `[TOUCH] tap at (x, y)` in the serial monitor. Bottom right should be
-  about x ≈ 290, y ≈ 225.
+- Swipe horizontally: the next page name appears as a toast.
+- Every tap prints `[TOUCH] tap at (x, y)` in the serial monitor.
 - X mirrored? Set `#define TOUCH_FLIP_X 1` in the `.ino`. Y mirrored? `TOUCH_FLIP_Y 1`.
 - USB connector on the other side? `#define SCREEN_ROTATION 3` (touch adapts).
 

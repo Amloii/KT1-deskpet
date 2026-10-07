@@ -6,7 +6,7 @@
 
 | Gesto | Acción |
 |---|---|
-| Botones **◀ / ▶** (esquinas inferiores) o deslizar en horizontal | Página anterior / siguiente |
+| Deslizar en horizontal | Página anterior / siguiente (los puntos de abajo indican la posición) |
 | Deslizar en vertical | Subir / bajar el brillo |
 | Pulsación larga (en la mayoría de páginas) | Cambiar el color de acento |
 | Dedo apoyado sobre la cara | Los ojos siguen tu dedo |
@@ -51,18 +51,24 @@ Página **Pantalla** → fila **Idioma** → toca *English* o *Espanol*. Cambia 
 textos, nombres de las páginas, ejercicios, fechas, el idioma del asistente de voz y el idioma de
 los textos que devuelve el bridge del PC. El primer arranque usa `DEFAULT_LANG` (inglés).
 
-## LED RGB
+## LED RGB de placa (diagnóstico: está dentro de la carcasa y no se ve)
 
 | Color | Significado |
 |---|---|
-| Verde fijo | Pausa activa en curso |
-| Cian intermitente | Aviso de postura / alerta de Vital |
 | Azul intermitente | Conectando a la Wi-Fi |
 | Rojo fijo | Sin Wi-Fi |
-| Ámbar intermitente | Pomodoro en marcha / compilación de OpenCode en curso |
+| Ámbar intermitente | Compilación de OpenCode en curso |
 | Rojo intermitente | La compilación de OpenCode ha fallado |
-| Azul fijo / verde fijo / naranja intermitente | Vital: sentado / de pie / relax |
+| Morado fijo | Actualización de firmware (OTA) |
 | Apagado | Todo bien |
+
+## Módulo LED externo (opcional, ver hardware §2)
+
+| Comportamiento | Significado |
+|---|---|
+| Encendido fijo | Actividad: fase del ciclo, pomodoro, pausa activa |
+| Strobe rápido | Aviso: postura, Vital, build roto, sin Wi-Fi |
+| Apagado | Reposo |
 
 ## Asistente de voz (página Chat)
 

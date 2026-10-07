@@ -6,7 +6,7 @@
 
 | Gesture | Action |
 |---|---|
-| **◀ / ▶** buttons (bottom corners) or horizontal swipe | Previous / next page |
+| Horizontal swipe | Previous / next page (the dots below show the position) |
 | Vertical swipe | Brightness up / down |
 | Long press (most pages) | Change accent colour |
 | Finger resting on the face | The eyes follow your finger |
@@ -51,18 +51,24 @@ All settings are stored in flash (NVS) and survive reboots.
 texts, page names, exercises, dates, the voice assistant's language and the language of
 the texts returned by the PC bridge. The first boot uses `DEFAULT_LANG` (English).
 
-## RGB LED
+## Onboard RGB LED (diagnostics: inside the case, not visible)
 
 | Colour | Meaning |
 |---|---|
-| Steady green | Active break in progress |
-| Blinking cyan | Posture nudge / Vital alert |
 | Blinking blue | Connecting to Wi-Fi |
 | Steady red | No Wi-Fi |
-| Blinking amber | Pomodoro running / OpenCode build in progress |
+| Blinking amber | OpenCode build in progress |
 | Blinking red | OpenCode build failed |
-| Steady blue / green / blinking orange | Vital: sitting / standing / relax |
+| Steady purple | Firmware update (OTA) |
 | Off | All good |
+
+## External LED module (optional, see hardware §2)
+
+| Behaviour | Meaning |
+|---|---|
+| Steady on | Activity: cycle phase, pomodoro, active break |
+| Fast strobe | Alert: posture, Vital, broken build, no Wi-Fi |
+| Off | Idle |
 
 ## Voice assistant (Chat page)
 

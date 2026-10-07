@@ -16,6 +16,7 @@
 | 8 | Cables Dupont (hembra-hembra / hembra-macho) | ~14 | Con sensores | Conexiones |
 | 9 | Mancuernas | 1–2 | Opcional | Pausas activas del ciclo de **Ejercicio** (*Exercise*) (los ejercicios de movilidad no las necesitan) |
 | 10 | Carcasa (impresa en 3D, se recomienda PETG) | 1 | Opcional | Ver §6 |
+| 11 | Módulo **LED 2 colores** (kit Elegoo, pines GRY) | 1 | Opcional | Luz ambiental de un color por IO2: fijo en actividad, strobe en avisos (ver §2) |
 
 Software/servicios (todos opcionales salvo el primero):
 
@@ -44,6 +45,12 @@ Software/servicios (todos opcionales salvo el primero):
 
 **Pines libres que usa KT1:** GPIO **2** (sensor táctil), GPIO **14** (DHT11), GPIO **3** (LDR, ADC1).
 Evita el GPIO 21 (conectado a GND en esta placa) y los pines de la tabla anterior.
+
+> **Módulo LED 2 colores externo (opcional, kit Elegoo, GRY):** con solo IO2 libre se usa
+> un color. G es masa: cablea G → **GND**, el color elegido (Y amarillo o R rojo) →
+> **IO2** y deja el otro sin conectar. Pon `PET_ENABLED 0` y `TWO_LED_ENABLED 1`. Fijo =
+> actividad (fase, pomo), strobe 4 Hz = avisos, apagado = reposo. Las plantas se quedan
+> como están.
 
 ## 3. Mapa de conexiones
 

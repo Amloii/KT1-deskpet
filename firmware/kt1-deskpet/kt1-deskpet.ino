@@ -7,7 +7,7 @@
  *           DHT11 (GPIO 14), LDR KY-018 (GPIO 3)
  *  PC     : pc-agent (Python) -> POST http://kt1.local/pet  ·  bridge.py (voice/OpenCode)
  *
- *  Pages (arrows < >):
+ *  Pages (swipe left/right):
  *    FACE · EXERCISE · POMODORO · PLANTS · VITAL · WEATHER · CLOCK · CHAT · SOUND · SCREEN · TIMERS
  *
  *  "Active focus" cycle (Cornell Ergonomics 20-8-2):
@@ -110,7 +110,7 @@
 // ---- TTP223 petting touch sensor (DO high while touched) ----
 // Module AT 3.3V (at 5V its DO would output 5V and burn the GPIO). GPIO 2 verified
 // free; do not use 9/21 (21 is pulled to GND on this board).
-#define PET_ENABLED    1
+#define PET_ENABLED    0        // no touch sensor wired: IO2 free (floating input would fake taps)
 #define PET_PIN        2
 #define PET_TAP_MS     400      // short tap = greeting
 #define PET_CARESS_MS  900      // hold = love + purr
@@ -147,7 +147,18 @@
 // ---- RGB LED ----
 #define LED_ENABLED      1
 #define LED_PIN          42
-#define LED_BRIGHT       12
+#define LED_BRIGHT       30
+
+// ---- Two-color LED module, single-pin use (e.g. Elegoo GRY) ----
+// Only IO2 is free (plants kept), so one color is driven: steady ON = activity,
+// 4 Hz strobe = alert, OFF = idle. Elegoo labels G = ground: wire G -> GND and
+// the chosen color (R/Y) -> IO2. Leave the other color floating.
+#define TWO_LED_ENABLED  1
+#define TWO_PIN          2
+#define TWO_ACTIVE_HIGH  1     // 0 if the module lights with the pin LOW
+#if TWO_LED_ENABLED && PET_ENABLED
+  #error "TWO_PIN clashes with the touch sensor: set PET_ENABLED 0 or pick another TWO_PIN"
+#endif
 
 // ---- Internet data ----
 #define WEATHER_EVERY_MS (15UL * 60UL * 1000UL)
@@ -305,6 +316,8 @@ public:
   }
 };
 PsramSprite  spr(&tft);                     // 16-bit RGB565 canvas in PSRAM (150 KB)
+PsramSprite  sprPrev(&tft);                 // previous page snapshot for the slide transition
+bool         prevOk = false;
 Preferences  prefs;
 WebServer    server(80);
 #if LED_ENABLED
@@ -397,6 +410,13 @@ char     toastText[40] = "";
 uint32_t toastUntil = 0;
 TouchState ts;
 
+// Page slide transition (swipe): the old frame is kept in sprPrev and slides
+// away over the new page for ANIM_MS. +1 = new page enters from the right.
+#define ANIM_MS 180
+bool     animActive = false;
+uint32_t animT0 = 0;
+int      animDir = 1;
+
 // Focus / coach / statistics
 Phase    gPhase = PH_OFF;
 Posture  gPosture = POS_SIT;
@@ -430,6 +450,7 @@ uint32_t manualUntil = 0;
 //  FORWARD DECLARATIONS (used across modules)
 // ===========================================================================
 void toast(const char* s, uint32_t ms = 1200);
+void setPage(int p, int dirHint = 0, bool toastIt = true);
 void sound(Sound s);
 bool getLocal(struct tm& t);
 bool isNight();
@@ -625,9 +646,31 @@ void buildPalette() {
 }
 
 void goPage(int delta) {
-  gPage = (gPage + delta + PAGE_COUNT) % PAGE_COUNT;
-  toast(PAGE_NAMES[gPage], 700);
-  Serial.printf("[NAV] arrow -> page %d of %d (%s)\n", gPage + 1, PAGE_COUNT, PAGE_NAMES[gPage]);
+  setPage(gPage + delta, delta > 0 ? +1 : -1);
+}
+// Central page switch: snapshots the current frame and slides the old page
+// away over ANIM_MS. dirHint: +1 enters from right, -1 from left, 0 = auto
+// (by index, with wrap). toastIt=false for silent switches (e.g. nudges).
+void setPage(int p, int dirHint, bool toastIt) {
+  p = (p % PAGE_COUNT + PAGE_COUNT) % PAGE_COUNT;
+  if (p == gPage) return;
+  int dir = dirHint;
+  if (dir == 0) {
+    int d = p - gPage;
+    if (d == -(PAGE_COUNT - 1)) dir = +1;
+    else if (d == PAGE_COUNT - 1) dir = -1;
+    else dir = (d > 0) ? +1 : -1;
+  }
+  if (prevOk && !coach.active) {
+    spr.pushToSprite(&sprPrev, 0, 0);   // old frame -> snapshot (what's on screen)
+    animDir = dir;
+    animT0 = millis();
+    animActive = true;
+  }
+  gPage = p;
+  gDirty = true;
+  if (toastIt) toast(PAGE_NAMES[gPage], 700);
+  Serial.printf("[NAV] page %d of %d (%s)\n", gPage + 1, PAGE_COUNT, PAGE_NAMES[gPage]);
 }
 void changeBrightness(int delta, bool wrap) {
   if (wrap) gBright = (gBright + delta + BRIGHT_COUNT) % BRIGHT_COUNT;
@@ -656,13 +699,11 @@ void handleGesture(Gesture g) {
   if (coach.active) { coachGesture(g); return; }
 
   switch (g) {
-    case G_SWIPE_L: goPage(+1); break;          // swipes still work if your touch panel reports them
+    case G_SWIPE_L: goPage(+1); break;          // swipe = change page
     case G_SWIPE_R: goPage(-1); break;
     case G_SWIPE_U: changeBrightness(+1, false); break;
     case G_SWIPE_D: changeBrightness(-1, false); break;
     case G_TAP: {
-      int nav = navHit(ts.x, ts.y);             // bottom < > buttons
-      if (nav) { goPage(nav); break; }
       if (gPage == PAGE_FACE) {
         if (vitalAlertActive()) vitalConfirm();
         else if (nudge.active) confirmPosture(nudge.target, false);   // "done it"
@@ -677,8 +718,8 @@ void handleGesture(Gesture g) {
       else if (gPage == PAGE_SET_TIME) setTimeTap(ts.x, ts.y);
       else if (gPage == PAGE_CHAT) chatTap(ts.x, ts.y);
       else if (gPage == PAGE_WEATHER) { reqWeather = true; toast(TR("Updating weather...", "Actualizando tiempo...")); }
-      else if (gPage == PAGE_CLOCK) { toast(TR("Use the < > buttons", "Usa los botones < >"), 900); }
-      else toast(TR("Use the < > buttons", "Usa los botones < >"), 900);
+      else if (gPage == PAGE_CLOCK) { toast(TR("Swipe sideways to change page", "Desliza de lado para cambiar de pagina"), 900); }
+      else toast(TR("Swipe sideways to change page", "Desliza de lado para cambiar de pagina"), 900);
     } break;
     case G_LONG:
       if (gPage == PAGE_CHAT) { chatReplay(); break; }   // hold = listen again
@@ -757,6 +798,9 @@ bool onSensorHold() {
 //  RENDER, BRIGHTNESS AND LED
 // ===========================================================================
 void render() {
+  if (coach.active) animActive = false;   // coach overlays instantly, no slide
+  bool inAnim = animActive && (millis() - animT0 < (uint32_t)ANIM_MS);
+  if (!inAnim) animActive = false;
   spr.fillSprite(PAPER);
   if (coach.active) {
     drawCoach();
@@ -773,6 +817,11 @@ void render() {
       case PAGE_SET_SOUND: drawSetSoundPage(); break;
       case PAGE_SET_SCREEN: drawSetScreenPage(); break;
       case PAGE_SET_TIME: drawSetTimePage(); break;
+    }
+    if (inAnim) {
+      // Old frame slides away: 0 -> off-screen in the swipe direction.
+      int32_t off = -(int32_t)animDir * SCR_W * (int32_t)(millis() - animT0) / ANIM_MS;
+      sprPrev.pushToSprite(&spr, off, 0);
     }
     if (gPage == PAGE_FACE && !coach.active) drawVitalBanner();   // vital turn: what's next + countdown
     drawPageDots();
@@ -809,37 +858,53 @@ void updateBacklight() {
 #endif
 }
 
+#if TWO_LED_ENABLED
+// Ambient two-color module on a single pin. Steady ON = activity (phase, pomo,
+// work); fast strobe (4 Hz) = alert needing attention; OFF = fully idle.
+void twoTick() {
+  static uint32_t lastTw = 0;
+  if (millis() - lastTw < 60) return;
+  lastTw = millis();
+  bool alert = nudge.active || vitalAlertActive() || buildFail() || gNet == NET_FAIL;
+  bool active = coach.active || pomoRunning() || gPhase != PH_OFF
+             || buildBusy() || gNet != NET_OK;
+  bool on = alert ? ((millis() / 250) & 1) : active;
+  static int lastTwo = -1;
+  if (on != (bool)lastTwo) {
+    lastTwo = on;
+    digitalWrite(TWO_PIN, (on == (bool)TWO_ACTIVE_HIGH) ? HIGH : LOW);
+    Serial.printf("[TWO] %s (net=%d phase=%d pomo=%d alert=%d)\n",
+                  on ? "ON" : "OFF", (int)gNet, (int)gPhase,
+                  pomoRunning() ? 1 : 0,
+                  (nudge.active || vitalAlertActive() || buildFail()) ? 1 : 0);
+  }
+}
+#endif
+
 void updateLed() {
 #if LED_ENABLED
+  // Onboard LED is inside the case: diagnostics only. User-facing states live
+  // on screen (aura, banners) and on the external module (twoTick).
   static int last = -1;
   bool blink = (millis() / 500) & 1;
   int st;
-  if (coach.active)                 st = 20;                       // solid green
-  else if (buildFail())               st = blink ? 2 : 0;            // v3: blinking red = build broken
-  else if (buildBusy())               st = blink ? 40 : 41;          // v3: blinking amber = AI working
-  else if (vitalAlertActive())      st = blink ? 30 : 31;          // blinking cyan = phase change
-  else if (pomoRunning())           st = pomoPaused ? (blink ? 40 : 41) : 40;  // solid amber = pomo, blink = paused
-  else if (nudge.active)            st = blink ? 30 : 31;          // blinking cyan
-  else if (gNet == NET_CONNECTING)  st = blink ? 10 : 11;          // blinking blue
-  else if (gNet == NET_FAIL)        st = 2;                        // red
-  else if (vitalPhase == VIT_RELAX && !vitalPaused) st = blink ? 60 : 61;  // orange = relax
-  else if (vitalPhase == VIT_SIT && !vitalPaused)   st = 70;       // blue = sitting
-  else if (vitalPhase == VIT_STAND && !vitalPaused) st = 71;       // green = standing
-  else                              st = 0;                        // off
+  if (buildFail())               st = blink ? 2 : 0;    // blinking red = build broken
+  else if (buildBusy())          st = blink ? 40 : 41;  // blinking amber = AI working
+  else if (gNet == NET_CONNECTING) st = blink ? 10 : 11;  // blinking blue
+  else if (gNet == NET_FAIL)     st = 2;                // red
+  else                           st = 0;                // off
   if (st == last) return;
   last = st;
   switch (st) {
-    case 20: led.setLedColorData(0, 0, 40, 0);  break;
-    case 60: led.setLedColorData(0, 30, 12, 0); break;   // relax orange (61 = off -> blinks)
-    case 70: led.setLedColorData(0, 0, 0, 40);  break;   // sitting blue
-    case 71: led.setLedColorData(0, 0, 35, 0);  break;   // standing green
     case 40: led.setLedColorData(0, 30, 15, 0); break;
-    case 30: led.setLedColorData(0, 0, 30, 30); break;
     case 10: led.setLedColorData(0, 0, 0, 40);  break;
     case 2:  led.setLedColorData(0, 40, 0, 0);  break;
     default: led.setLedColorData(0, 0, 0, 0);   break;
   }
   led.show();
+#endif
+#if TWO_LED_ENABLED
+  twoTick();
 #endif
 }
 
@@ -909,6 +974,7 @@ void setup() {
   tft.drawString(TR("Starting...", "Arrancando..."), 10, 44, 2);
   // Canvas: 16 bits in PSRAM. Without PSRAM, 8 bits (RGB332, 75 KB) in internal RAM: a
   // 16-bit one (150 KB) there would starve TLS and weather/GitHub would fail.
+  // sprPrev mirrors the canvas: snapshot of the old page for the slide transition.
   bool psram = psramFound();
   int  depth = 16;
   if (!psram || !spr.createInPsram(SCR_W, SCR_H)) {
@@ -917,7 +983,14 @@ void setup() {
     depth = 8;
     spr.setColorDepth(8);
     if (!spr.createSprite(SCR_W, SCR_H)) Serial.println("[TFT] ERROR creating sprite (out of memory)");
+    else {
+      sprPrev.setColorDepth(8);
+      prevOk = sprPrev.createSprite(SCR_W, SCR_H);
+    }
+  } else {
+    prevOk = sprPrev.createInPsram(SCR_W, SCR_H);
   }
+  if (!prevOk) Serial.println("[TFT] No prev canvas: page changes without slide");
   Serial.printf("[TFT] Canvas %d bits in %s. Free internal RAM %u B, free PSRAM %u B\n",
                 depth, depth == 16 ? "PSRAM" : "internal RAM",
                 (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
@@ -927,6 +1000,13 @@ void setup() {
 #if LED_ENABLED
   led.begin();
   led.setBrightness(LED_BRIGHT);
+#endif
+#if TWO_LED_ENABLED
+  pinMode(TWO_PIN, OUTPUT);
+  digitalWrite(TWO_PIN, TWO_ACTIVE_HIGH ? LOW : HIGH);   // start idle = off
+  digitalWrite(TWO_PIN, TWO_ACTIVE_HIGH ? HIGH : LOW);   // self-test blink
+  delay(400);
+  digitalWrite(TWO_PIN, TWO_ACTIVE_HIGH ? LOW : HIGH);
 #endif
 
   // Internal bus as in ESP32S3_TaskManager (which works): Wire.begin(16,15) and touch.
@@ -980,6 +1060,9 @@ static void otaCheck() {
   if (!v[0] || !u[0] || strcmp(v, FW_VERSION) == 0) return;
   Serial.printf("[OTA] %s -> %s\n", FW_VERSION, v);
   toast(TR("Updating...", "Actualizando..."), 2000);
+#if LED_ENABLED
+  led.setLedColorData(0, 25, 0, 30); led.show();   // solid purple while flashing
+#endif
   render();
   WiFiClient c;
   c.setTimeout(15000);
@@ -1025,14 +1108,14 @@ void loop() {
   // No auto-return during pomodoro or a posture nudge (the vital turn
   // alerts on the FACE with a pill + LED, so you can navigate freely).
   if (!coach.active && !pomoRunning() && !nudge.active && gPage != PAGE_FACE && now - lastInteraction > AUTO_RETURN_MS) {
-    gPage = PAGE_FACE; gDirty = true;
+    setPage(PAGE_FACE, -1, false);   // back home: slides in from the left, no toast
   }
   // "Dizzy" NO longer changes page: it only shows spiral eyes when already on the face.
 
   updateBacklight();
   updateLed();
 
-  bool animated = coach.active || vitalPhase != VIT_OFF || gPage == PAGE_FACE || gPage == PAGE_VITAL || gPage == PAGE_CHAT || ts.down;
+  bool animated = coach.active || animActive || vitalPhase != VIT_OFF || gPage == PAGE_FACE || gPage == PAGE_VITAL || gPage == PAGE_CHAT || ts.down;
   uint32_t frameMs = animated ? 33 : 200;
   if (gDirty || now - lastFrame >= frameMs) {
     lastFrame = now;

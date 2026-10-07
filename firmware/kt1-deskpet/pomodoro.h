@@ -162,6 +162,7 @@ void pomoCountDone() {
 
 void pomoStartFocus() {
   pomoState = POMO_FOCUS; pomoT0 = millis(); pomoPausedAcc = 0; pomoPaused = false;
+  Serial.println("[POMO] start focus");
   pomoCurMs = pomoIsFlow() ? 0 : (uint32_t)pomoFocusMin * 60000UL;
   pomoFlowBreakMin = pomoBreakMin;
   pomoLastBreakLong = false;
