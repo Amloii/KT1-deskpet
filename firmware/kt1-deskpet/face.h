@@ -4,6 +4,14 @@
 // ===========================================================================
 #pragma once
 
+// Pomo ambient chip (defined in pomodoro.h, called at runtime only)
+bool pomoRunning();
+bool pomoIsFlow();
+uint32_t pomoRemainS();
+uint32_t pomoElapsed();
+extern bool pomoPaused;
+extern int pomoMode;
+
 // ---------------------------------------------------------------------------
 //  Common drawing utilities
 // ---------------------------------------------------------------------------
@@ -220,7 +228,9 @@ int navHit(int x, int y) {
 void drawToast() {
   if (millis() > toastUntil || !toastText[0]) return;
   int w = spr.textWidth(toastText, 2) + 26;
-  int x = (SCR_W - w) / 2, y = 168;
+  // On the pomodoro page the buttons live at y>=168: show global toasts on top
+  // instead of covering them (inline pomoMsg already handles local feedback).
+  int x = (SCR_W - w) / 2, y = (gPage == PAGE_POMO ? 30 : 168);
   spr.fillRoundRect(x - 1, y - 1, w + 2, 30, 10, P.bg);      // halo to separate it from the background
   spr.fillRoundRect(x, y, w, 28, 9, P.card);
   spr.drawRoundRect(x, y, w, 28, 9, P.accent);
@@ -534,15 +544,31 @@ void drawEyesAt(int cx0, int cy0, float s) {
 void drawStatusBar() {
   struct tm t; char b[24];
   if (getLocal(t)) { snprintf(b, sizeof(b), "%02d:%02d", t.tm_hour, t.tm_min); txt(b, 8, 4, 2, TL_DATUM, P.inkDim); }
-  // center: cycle phase and minutes left
-  if (gPhase != PH_OFF) {
+  // center: exercise phase and/or pomo remain (ambient chip when away from pomo page)
+  if (gPhase != PH_OFF || pomoRunning()) {
     static const char* const SHORT_L[LANG_COUNT][6] = {
       { "", "SIT", "STAND", "MOVE", "BREAK", "AWAY" },
       { "", "SENTADO", "DE PIE", "MOVER", "PAUSA", "FUERA" },
     };
-    uint32_t rem = phaseRemainingS();
-    snprintf(b, sizeof(b), "%s %lum%s", SHORT_L[gLang][gPhase], (unsigned long)((rem + 59) / 60), gPaused ? " II" : "");
-    txt(b, SCR_W / 2, 4, 2, TC_DATUM, phaseColor(gPhase));
+    char c[48]; c[0] = 0;
+    if (gPhase != PH_OFF) {
+      uint32_t rem = phaseRemainingS();
+      snprintf(c, sizeof(c), "%s %lum%s", SHORT_L[gLang][gPhase], (unsigned long)((rem + 59) / 60), gPaused ? " II" : "");
+    }
+    if (pomoRunning()) {
+      char pb[24];
+      const char* ini = (pomoMode == 1) ? "E" : (pomoMode == 2 ? "O" : "T");
+      if (pomoIsFlow()) {
+        uint32_t e = pomoElapsed() / 60000UL;
+        snprintf(pb, sizeof(pb), "%s+%lum%s", ini, (unsigned long)e, pomoPaused ? " II" : "");
+      } else {
+        uint32_t r = pomoRemainS();
+        snprintf(pb, sizeof(pb), "%s%lum%s", ini, (unsigned long)((r + 59) / 60), pomoPaused ? " II" : "");
+      }
+      if (c[0]) { strlcat(c, " ", sizeof(c)); strlcat(c, pb, sizeof(c)); }
+      else strlcpy(c, pb, sizeof(c));
+    }
+    txt(c, SCR_W / 2, 4, 2, TC_DATUM, (gPhase == PH_OFF) ? P.warn : phaseColor(gPhase));
   }
   float temp; bool ok;
   xSemaphoreTake(dataMtx, portMAX_DELAY); ok = gWeather.ok; temp = gWeather.temp; xSemaphoreGive(dataMtx);

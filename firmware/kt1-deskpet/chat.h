@@ -7,6 +7,7 @@
 //   - The system prompt also asks for PAGE: (switch screen) and CMD with the
 //     PC tools: MUTE, PLAY, VOL:<n>, OPEN:<app>, LOCK/SLEEP (with CONFIRM),
 //     SCREEN (+automatic photo for vision), PLAY:<video>, TODO:<t>,
+//     FOCUS:<mode>:<task> (bind a pomodoro task, switch mode, start focus),
 //     REMIND:<sec>:<t>, REMINDLIST, DND, PAIR, PROMPT:<t>, RESUME.
 //     -> remote.h/bridge.py. These are the voice chatbot tools (no Remote page).
 //   - soundTask is suspended before recording/speaking (soundAudioSuspend) and
@@ -47,6 +48,8 @@ static const char* CHAT_SYS_EN =
   "LOCK (lock), SLEEP (suspend), SCREEN (say what is on screen), "
   "PLAY:<text or URL of a video to play on the PC>, "
   "TODO:<text to note down>, REMIND:<seconds>:<text to remind> (minimum 60 s), "
+  "FOCUS:<work|writing|leisure>:<short task, max 40 chars> (the user starts working on "
+  "something: bind it as the pomodoro task and start its timer), "
   "REMINDLIST (read pending reminders), DND (toggle do not disturb), "
   "MEMORY:<fact to remember about the user: tastes, projects, schedules>, "
   "MEMLIST (read remembered facts), BRIEF (briefing: reminders, TODO, memories, screen), "
@@ -55,6 +58,11 @@ static const char* CHAT_SYS_EN =
   "LOCK and SLEEP are dangerous: first answer CMD:LOCK or CMD:SLEEP with BOT asking "
   "\"are you sure?\"; ONLY if the user says yes/ok in the next message answer CMD:CONFIRM. "
   "If the user confirms something you asked, CMD:CONFIRM. "
+  "If the user says they are going to work on something (starting or resuming a task), "
+  "answer CMD:FOCUS:<mode>:<task> with PAGE:Pomodoro, classifying the mode as work "
+  "(default: tasks, study, code), writing (write, draft, thesis, essay) or leisure "
+  "(hobby, drawing, casual reading), and your BOT reply must contain exactly one short "
+  "practical tip tailored to that task and block. "
   "Return EXACTLY these five lines, nothing else:\n"
   "USER: <literal transcription>\nBOT: <your answer>\nEMO: <happy|neutral|angry|bored>\n"
   "PAGE: <screen or ->\nCMD: <action or ->";
@@ -72,6 +80,8 @@ static const char* CHAT_SYS_ES =
   "LOCK (bloquear), SLEEP (suspender), SCREEN (decir que se ve en pantalla), "
   "PLAY:<texto o URL de video para reproducir en el PC>, "
   "TODO:<texto para apuntar>, REMIND:<segundos>:<texto para avisar> (minimo 60 s), "
+  "FOCUS:<work|writing|leisure>:<tarea corta, maximo 40 caracteres> (el usuario se pone "
+  "con algo: atalo como tarea del pomodoro y arranca su timer), "
   "REMINDLIST (leer avisos pendientes), DND (alternar no molestar), "
   "MEMORY:<dato para recordar de ti: gustos, proyectos, horarios>, "
   "MEMLIST (leer lo recordado), BRIEF (el parte: avisos, TODO, recuerdos, pantalla), "
@@ -80,6 +90,11 @@ static const char* CHAT_SYS_ES =
   "LOCK y SLEEP son peligrosos: primero responde CMD:LOCK o CMD:SLEEP con BOT preguntando "
   "\"seguro?\"; SOLO si el usuario dice si/vale en el mensaje siguiente respondes CMD:CONFIRM. "
   "Si el usuario confirma algo que preguntaste, CMD:CONFIRM. "
+  "Si el usuario dice que se pone a trabajar en algo (empieza o retoma una tarea), "
+  "responde CMD:FOCUS:<modo>:<tarea> con PAGE:Pomodoro, clasificando el modo como work "
+  "(defecto: tareas, estudio, codigo), writing (escribir, redactar, tesis, ensayo) o leisure "
+  "(hobby, dibujo, lectura tranquila), y tu respuesta BOT debe contener exactamente un consejo "
+  "practico y corto adaptado a esa tarea y ese bloque. "
   "Devuelve EXACTAMENTE estas cinco lineas, sin nada mas:\n"
   "USER: <transcripcion literal>\nBOT: <tu respuesta>\nEMO: <happy|neutral|angry|bored>\n"
   "PAGE: <pantalla o ->\nCMD: <accion o ->";
@@ -588,7 +603,7 @@ static void chatApplyPage(const String& page) {
     if (page.equalsIgnoreCase(m.name)) { gPage = m.idx; gDirty = true; toast(PAGE_NAMES[m.idx], 900); return; }
 }
 
-static void chatApplyCmd(String cmd) {
+static void chatApplyCmd(String cmd, const char* botText = nullptr) {
   cmd.trim();
   if (!cmd.length() || cmd == "-") return;
   if (cmd.equalsIgnoreCase("MUTE")) { remoteMuteToggle(); return; }
@@ -598,6 +613,35 @@ static void chatApplyCmd(String cmd) {
   if (cmd.startsWith("OPEN:")) { String t = cmd.substring(5); t.trim(); remoteOpen(t.c_str()); return; }
   if (cmd.startsWith("VOL:")) { String v = cmd.substring(4); v.trim(); if (v.length() && isdigit(v[0])) remoteVolume(v.toInt()); return; }
   if (cmd.startsWith("TODO:")) { String t = cmd.substring(5); t.trim(); remoteTodo(t.c_str()); return; }
+  // FOCUS:<mode>:<task> — bind a pomodoro task, switch to its mode and start focus.
+  // The spoken BOT answer carries the tailored tip: keep it for the break card.
+  if (cmd.startsWith("FOCUS:")) {
+    String r = cmd.substring(6);
+    int sep = r.indexOf(':');
+    String m = (sep > 0) ? r.substring(0, sep) : r;
+    String t = (sep > 0) ? r.substring(sep + 1) : "";
+    m.trim(); m.toLowerCase(); t.trim();
+    int mode = POMO_TRABAJO;
+    if (m.startsWith("writ") || m.startsWith("escr")) mode = POMO_ESCRITURA;
+    else if (m.startsWith("leis") || m.startsWith("oci")) mode = POMO_OCIO;
+    pomoMode = mode; pomoSyncModeDur(); pomoWriteSlot();
+    char tmp[64];
+    chatToAscii(tmp, sizeof(tmp), t.c_str());
+    String ts = tmp; ts.trim();
+    if (ts.length()) { strlcpy(pomoTask, ts.c_str(), sizeof(pomoTask)); pomoHasTask = true; }
+    else pomoHasTask = false;
+    if (botText && botText[0]) {
+      char tip[128];
+      chatToAscii(tip, sizeof(tip), botText);
+      strlcpy(pomoTip, tip, sizeof(pomoTip));
+    } else pomoTip[0] = 0;
+    gPage = PAGE_POMO;
+    pomoStartFocus();
+    if (pomoHasTask) pomoSay(pomoTask, 1600);
+    else pomoSay(pomoRelaxLine(), 1800);
+    gDirty = true;
+    return;
+  }
   if (cmd.startsWith("MEMORY:")) { String t = cmd.substring(7); t.trim(); remoteRemember(t.c_str()); return; }
   if (cmd.startsWith("PROMPT:")) { String t = cmd.substring(7); t.trim(); ocPrompt(t.c_str()); return; }
   if (cmd.startsWith("REMIND:")) {
@@ -738,7 +782,7 @@ static void chatTurn(uint32_t fixedMs = 0) {
     }
   } else {
     chatSpeak(bot, false);
-    chatApplyCmd(cmd);   // after speaking: MUTE/PLAY/LOCK/TODO/PROMPT...
+    chatApplyCmd(cmd, bot.c_str());   // after speaking: MUTE/PLAY/LOCK/TODO/FOCUS/PROMPT...
   }
   soundAudioResume();
   chatState = CHAT_IDLE;

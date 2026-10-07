@@ -123,9 +123,10 @@
 #define LDR_PIN        3
 #define PLANT_MEAS_MS  8000UL   // measures ~8 s and averages
 
-// ---- Pomodoro v2 (configurable in Settings, saved in NVS) ----
+// ---- Pomodoro v3 (configurable in Settings + inline, saved in NVS) ----
 #define POMO_FOCUS_DEFAULT 25   // min
 #define POMO_BREAK_DEFAULT 10   // min
+#define POMO_LONG_DEFAULT 20    // min (every 4th break)
 
 // ---- Posture: manual signal only (buttons, face, sensor, pages).
 // (There used to be an IMU desk vibration detector: it gave false
@@ -212,7 +213,8 @@ enum NetState{ NET_CONNECTING, NET_OK, NET_FAIL };
 enum Phase   { PH_OFF, PH_SIT, PH_STAND, PH_MOVE, PH_LONG, PH_AWAY };
 enum Posture { POS_SIT, POS_STAND };
 enum CoachState { CO_OFF, CO_READY, CO_GO, CO_WORK, CO_SWITCH, CO_REST, CO_DONE };
-enum Sound : uint8_t { SND_TICK, SND_GO, SND_SIDE, SND_STAND, SND_MOVE, SND_SIT, SND_DONE, SND_HELLO, SND_PURR };
+enum Sound : uint8_t { SND_TICK, SND_GO, SND_SIDE, SND_STAND, SND_MOVE, SND_SIT, SND_DONE, SND_HELLO, SND_PURR,
+  SND_PW_GO, SND_PE_GO, SND_PO_GO, SND_PW_END, SND_PE_END, SND_PO_END };
 
 struct WeatherData {
   bool  ok = false;
@@ -440,6 +442,9 @@ bool isPresent();
 void pomoTick();
 void pomoTap(int x, int y);
 bool pomoRunning();
+bool pomoIsFlow();
+uint32_t pomoRemainS();
+uint32_t pomoElapsed();
 void plantTick();
 void plantTap(int x, int y);
 void vitalTick();
@@ -813,7 +818,7 @@ void updateLed() {
   else if (buildFail())               st = blink ? 2 : 0;            // v3: blinking red = build broken
   else if (buildBusy())               st = blink ? 40 : 41;          // v3: blinking amber = AI working
   else if (vitalAlertActive())      st = blink ? 30 : 31;          // blinking cyan = phase change
-  else if (pomoRunning())           st = blink ? 40 : 41;          // soft amber = pomodoro
+  else if (pomoRunning())           st = pomoPaused ? (blink ? 40 : 41) : 40;  // solid amber = pomo, blink = paused
   else if (nudge.active)            st = blink ? 30 : 31;          // blinking cyan
   else if (gNet == NET_CONNECTING)  st = blink ? 10 : 11;          // blinking blue
   else if (gNet == NET_FAIL)        st = 2;                        // red
@@ -858,6 +863,28 @@ void setup() {
   gVolume  = constrain((int)prefs.getUChar("vol", SOUND_VOLUME), 0, 100);
   pomoFocusMin = constrain((int)prefs.getUChar("pFoc", POMO_FOCUS_DEFAULT), 5, 90);
   pomoBreakMin = constrain((int)prefs.getUChar("pBrk", POMO_BREAK_DEFAULT), 1, 30);
+  pomoLongMin = constrain((int)prefs.getUChar("pLng", POMO_LONG_DEFAULT), 5, 60);
+  pomoQuiet = prefs.getBool("pQuiet", false);
+  // Per-mode durations (Trabajo 25/5, Escritura 50/10, Ocio 15/15); legacy migrates mode 0
+  pomoMode = constrain((int)prefs.getUChar("pMode", POMO_TRABAJO), 0, POMO_MODES - 1);
+  {
+    char k[8];
+    static const int DF[POMO_MODES] = { 25, 50, 15 };
+    static const int DB[POMO_MODES] = { 5, 10, 15 };
+    for (int i = 0; i < POMO_MODES; i++) {
+      snprintf(k, sizeof(k), "pF%d", i);
+      int fb = (i == 0) ? pomoFocusMin : DF[i];
+      pomoFocusPerMode[i] = constrain((int)prefs.getUChar(k, fb), 5, 90);
+      snprintf(k, sizeof(k), "pB%d", i);
+      int bb = (i == 0) ? pomoBreakMin : DB[i];
+      pomoBreakPerMode[i] = constrain((int)prefs.getUChar(k, bb), 1, 30);
+      snprintf(k, sizeof(k), "pT%d", i);
+      pomoTodayPerMode[i] = prefs.getUShort(k, 0);
+    }
+    pomoTodayCount = pomoTodayPerMode[0] + pomoTodayPerMode[1] + pomoTodayPerMode[2];
+    pomoSyncModeDur();
+  }
+  pomoDayKey = prefs.getUInt("pDay", 0);
   sedEveryMin = prefs.getUChar("sedEvery", SED_EVERY_DEFAULT);
   if (sedEveryMin != 0 && sedEveryMin != 15 && sedEveryMin != 30 && sedEveryMin != 45 && sedEveryMin != 60)
     sedEveryMin = SED_EVERY_DEFAULT;

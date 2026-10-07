@@ -33,7 +33,7 @@ medición de planta → si no, **caricias**.
 | 1 | **Cara** (*Face*) | Ojos animados con 10 estados de ánimo, parpadeo, gestos en reposo. Barra superior: hora, fase del ciclo y minutos restantes, temperatura exterior, Wi-Fi. Toque = siguiente estado de ánimo. Muestra los avisos de postura y las alertas de Vital |
 | 2 | **Ejercicio** (*Exercise*) | Ciclo sentado/de pie **20 min sentado → 8 min de pie → 2 min en movimiento** (Cornell). Cada 4 ciclos, una pausa más larga en circuito. Grupo muscular del día (piernas / espalda / brazos) |
 | — | *Entrenador* (superpuesto) | Guía cada pausa activa: cuenta atrás 3-2-1, un pitido por repetición, cambio de lado, descanso. Botones **Otro** (*Other*) / **Sin pesas** (*No weights*) / **Saltar** (*Skip*) |
-| 3 | **Pomodoro** | Modos **Trabajo / Escritura / Ocio** (*Work / Writing / Leisure*), concentración + descanso (25 + 10 por defecto), ánimos suaves cada ~5 min |
+| 3 | **Pomodoro** | *Trabajo* fijo + *Escritura/Ocio* en flow ascendente, tiempos por modo (25/5, 50/10, 15/15) editables inline, tonos propios por modo, tarea por voz (`me pongo con X`: la ata, arranca el foco y da un consejo que se ve en el descanso), auto-ciclo x4 + descanso largo, puntitos + contador hoy por modo, modo tranqui, Pausa/Fin (Fin pide 2 toques), avisos en línea propia que nunca tapan los botones |
 | 4 | **Plantas** (*Plants*) | Elige una planta y toca **Medir** (*Measure*): ~8 s de luz (LDR), temperatura y humedad (DHT11) comparadas con sus rangos ideales → **Bajo / Ideal / Alto** (*Low / Ideal / High*) |
 | 5 | **Vital** | Cambios de postura alternativos SENTADO / DE PIE / RELAJATE (*SITTING / STANDING / RELAX*) (solo movilidad). Intervalos configurables. Excluyente con *Ejercicio* |
 | 6 | **Tiempo** (*Weather*) | Open-Meteo (sin clave): icono, temperatura, sensación térmica, humedad, viento, máx./mín., probabilidad de lluvia, amanecer/atardecer. Cada 15 min; toque = actualizar |
@@ -41,7 +41,7 @@ medición de planta → si no, **caricias**.
 | 8 | **Chat** | Asistente de voz (ver más abajo) |
 | 9 | **Sonido** (*Sound*) | Sonido activado/desactivado, volumen (toca un segmento para probarlo) |
 | 10 | **Pantalla** (*Screen*) | Brillo (5 niveles), color de acento (Cian / Ambar / Verde / Rosa — *Cyan / Amber / Green / Pink*) e **Idioma** (*Language*) (English / Espanol) |
-| 11 | **Tiempos** (*Timers*) | Concentración del pomodoro (15/25/35/45), descanso (5/10/15) y recordatorio antisedentarismo (OFF/15/30/45/60 min) |
+| 11 | **Tiempos** (*Timers*) | Concentración del pomodoro (15/25/35/45), descanso corto (5/10/15), descanso largo (15/20/30, auto cada 4º) y recordatorio antisedentarismo (OFF/15/30/45/60 min) |
 
 Todos los ajustes se guardan en flash (NVS) y se conservan tras reiniciar.
 
@@ -93,6 +93,7 @@ Con `pc-agent` en marcha en tu PC también puedes pedirle acciones:
 | «manda a la sesión que revise X» | `PROMPT:<text>` | Envía un prompt a una sesión de OpenCode |
 | «resume la sesión» | `RESUME` | Lee los últimos mensajes de OpenCode |
 | «pon el pomodoro» | `PAGE:` | Cambia la página del dispositivo |
+| «me pongo con el informe» | `FOCUS:<modo>:<tarea>` | Ata la tarea al pomodoro (clasifica trabajo/escritura/ocio), arranca el foco y da un consejo de voz para ese bloque |
 
 ## Notas de salud
 

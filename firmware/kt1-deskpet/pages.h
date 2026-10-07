@@ -404,40 +404,47 @@ void setScreenTap(int x, int y) {
   }
 }
 
-// --- TIMERS: pomodoro focus/break + anti-sedentary ---
-#define SET_TB_H 24
+// --- TIMERS: pomodoro focus/short/long + anti-sedentary (4 big rows, h=30) ---
+#define SET_TB_H 30
 void drawSetTimePage() {
   drawHeader(TR("TIMERS", "TIEMPOS"));
   const int X0 = SET_X0, W = SET_W;
-  char b[32];
-  txt(TR("Pomodoro focus", "Pomodoro foco"), X0, 26, 2, TL_DATUM, P.inkDim);
-  snprintf(b, sizeof(b), "%d min", pomoFocusMin);
-  drawButton(X0, 44, W, SET_TB_H, b, true, P.accent);
-  txt(TR("Pomodoro break", "Pomodoro descanso"), X0, 76, 2, TL_DATUM, P.inkDim);
-  snprintf(b, sizeof(b), "%d min", pomoBreakMin);
-  drawButton(X0, 94, W, SET_TB_H, b, true, P.ok);
-  txt(TR("Anti-sedentary", "Anti-sedentario"), X0, 126, 2, TL_DATUM, P.inkDim);
-  if (sedEveryMin == 0) drawButton(X0, 144, W, SET_TB_H, "OFF", false, 0);
-  else { snprintf(b, sizeof(b), TR("Every %d min", "Cada %d min"), sedEveryMin); drawButton(X0, 144, W, SET_TB_H, b, true, P.warn); }
+  char b[40];
+  snprintf(b, sizeof(b), TR("Focus %d min %s", "Foco %d min %s"), pomoFocusMin, POMO_MODE_NAMES[pomoMode]);
+  drawButton(X0, 32, W, SET_TB_H, b, true, P.accent);
+  snprintf(b, sizeof(b), TR("Break %d min %s", "Descanso %d min %s"), pomoBreakMin, POMO_MODE_NAMES[pomoMode]);
+  drawButton(X0, 70, W, SET_TB_H, b, true, P.ok);
+  snprintf(b, sizeof(b), TR("Long %d' auto x4", "Largo %d' auto x4"), pomoLongMin);
+  drawButton(X0, 108, W, SET_TB_H, b, true, P.warn);
+  if (sedEveryMin == 0) drawButton(X0, 146, W, SET_TB_H, TR("Sedentary OFF", "Sedentario OFF"), false, 0);
+  else { snprintf(b, sizeof(b), TR("Sedentary %d min", "Sedentario %d min"), sedEveryMin); drawButton(X0, 146, W, SET_TB_H, b, true, P.info); }
 }
 
 void setTimeTap(int x, int y) {
   const int X0 = SET_X0, W = SET_W;
   char b[24];
   if (x < X0 || x > X0 + W) return;
-  if (y >= 44 && y < 44 + SET_TB_H) {
+  if (y >= 32 && y < 32 + SET_TB_H) {
     static const int FS[4] = { 15, 25, 35, 45 };
     int i = 0; while (i < 3 && FS[i] != pomoFocusMin) i++;
     pomoFocusMin = FS[(i + 1) % 4];
-    prefs.putUChar("pFoc", pomoFocusMin);
+    pomoFocusPerMode[pomoMode] = pomoFocusMin;
+    pomoWriteSlot();
     snprintf(b, sizeof(b), TR("Focus %d min", "Foco %d min"), pomoFocusMin); toast(b, 900);
-  } else if (y >= 94 && y < 94 + SET_TB_H) {
+  } else if (y >= 70 && y < 70 + SET_TB_H) {
     static const int BS[3] = { 5, 10, 15 };
     int i = 0; while (i < 2 && BS[i] != pomoBreakMin) i++;
     pomoBreakMin = BS[(i + 1) % 3];
-    prefs.putUChar("pBrk", pomoBreakMin);
+    pomoBreakPerMode[pomoMode] = pomoBreakMin;
+    pomoWriteSlot();
     snprintf(b, sizeof(b), TR("Break %d min", "Descanso %d min"), pomoBreakMin); toast(b, 900);
-  } else if (y >= 144 && y < 144 + SET_TB_H) {
+  } else if (y >= 108 && y < 108 + SET_TB_H) {
+    static const int LS[3] = { 15, 20, 30 };
+    int i = 0; while (i < 2 && LS[i] != pomoLongMin) i++;
+    pomoLongMin = LS[(i + 1) % 3];
+    prefs.putUChar("pLng", pomoLongMin);
+    snprintf(b, sizeof(b), TR("Long %d min", "Largo %d min"), pomoLongMin); toast(b, 900);
+  } else if (y >= 146 && y < 146 + SET_TB_H) {
     static const int SS[5] = { 0, 15, 30, 45, 60 };
     int i = 0; while (i < 4 && SS[i] != sedEveryMin) i++;
     sedEveryMin = SS[(i + 1) % 5];

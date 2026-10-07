@@ -52,6 +52,13 @@ static void soundTask(void*) {
       case SND_DONE:  playTone(523, 110); playTone(659, 110); playTone(784, 110); playTone(1047, 260); break;
       case SND_HELLO: playTone(659, 90); playTone(988, 150); break;
       case SND_PURR:  for (int i = 0; i < 7; i++) { playTone(150, 70, 0.8f); playSilence(55); } break;
+      // Pomodoro per-mode jingles: Trabajo bright, Escritura soft mid, Ocio low and gentle
+      case SND_PW_GO: playTone(880, 90); playSilence(40); playTone(1175, 90); playSilence(40); playTone(1320, 180); break;
+      case SND_PE_GO: playTone(659, 120); playTone(880, 120); playTone(988, 200); break;
+      case SND_PO_GO: playTone(523, 140, 0.8f); playTone(659, 140, 0.8f); playTone(784, 240, 0.8f); break;
+      case SND_PW_END: playTone(784, 100); playTone(1047, 220); break;
+      case SND_PE_END: playTone(659, 100); playTone(988, 220); break;
+      case SND_PO_END: playTone(523, 120, 0.8f); playTone(784, 240, 0.8f); break;
     }
     playSilence(60);
   }

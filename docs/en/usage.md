@@ -33,7 +33,7 @@ plant measurement → otherwise **petting**.
 | 1 | **Face** | Animated eyes with 10 moods, blinking, idle gestures. Top bar: time, cycle phase and minutes left, outside temperature, Wi-Fi. Tap = next mood. Shows posture nudges and Vital alerts |
 | 2 | **Exercise** | Sit/stand cycle **20 min sitting → 8 min standing → 2 min moving** (Cornell). Every 4 cycles, a longer circuit break. Today's muscle group (legs / back / arms) |
 | — | *Coach* (overlay) | Guides each active break: 3-2-1 countdown, one beep per repetition, side change, rest. Buttons *Other* / *No weights* / *Skip* |
-| 3 | **Pomodoro** | Modes *Work / Writing / Leisure*, focus + break (25 + 10 by default), gentle encouragement every ~5 min |
+| 3 | **Pomodoro** | *Work* fixed + *Writing/Leisure* flow count-up, per-mode times (25/5, 50/10, 15/15) editable inline, per-mode start/end tones, voice task binding (`FOCUS:` sets task + mode, starts focus, speaks one tailored tip shown on the break card), auto 4-cycle + long break, dots + per-mode today count, quiet mode, Pause/End (End asks twice), inline notices on their own line that never cover the buttons |
 | 4 | **Plants** | Pick a plant and tap **Measure**: ~8 s of light (LDR), temperature and humidity (DHT11) compared with its ideal ranges → *Low / Ideal / High* |
 | 5 | **Vital** | Alternative posture shifts SITTING / STANDING / RELAX (mobility only). Configurable intervals. Mutually exclusive with *Exercise* |
 | 6 | **Weather** | Open-Meteo (no key): icon, temperature, feels like, humidity, wind, max/min, rain chance, sunrise/sunset. Every 15 min; tap = refresh |
@@ -41,7 +41,7 @@ plant measurement → otherwise **petting**.
 | 8 | **Chat** | Voice assistant (see below) |
 | 9 | **Sound** | Sound on/off, volume (tap a segment to test it) |
 | 10 | **Screen** | Brightness (5 levels), accent colour (Cyan / Amber / Green / Pink) and **Language** (English / Espanol) |
-| 11 | **Timers** | Pomodoro focus (15/25/35/45), break (5/10/15) and anti-sedentary reminder (OFF/15/30/45/60 min) |
+| 11 | **Timers** | Pomodoro focus (15/25/35/45), short break (5/10/15), long break (15/20/30, auto every 4th) and anti-sedentary reminder (OFF/15/30/45/60 min) |
 
 All settings are stored in flash (NVS) and survive reboots.
 
@@ -92,6 +92,7 @@ With `pc-agent` running on your PC you can also ask for actions:
 | "tell the session to review X" | `PROMPT:<text>` | Sends a prompt to an OpenCode session |
 | "summarize the session" | `RESUME` | Reads the latest OpenCode messages |
 | "go to pomodoro" | `PAGE:` | Changes the device page |
+| "starting the report" | `FOCUS:<mode>:<task>` | Binds the task to pomodoro (classifies work/writing/leisure), starts focus and speaks one tailored tip |
 
 ## Health notes
 
