@@ -139,26 +139,17 @@ void setPhase(Phase p) {
   Serial.printf("[FOCUS] Phase: %s (cycle %d)\n", phaseName(p), cycleNo);
 }
 void cycleStart() {
-  vitalStop();   // mutual exclusion: stops the Vital shifts
-  cycleNo = 1;
-  gPaused = false;
-  setPhase(PH_SIT);
+  // Vital Dia es el unico director: Ejercicio delega en el (preset Cornell).
+  vitalSetPreset(1);
+  vitalStart();
   sitSince = millis();
-  toast(TR("Exercise: 20' sitting", "Ejercicio: 20' sentado"), 1500);
 }
 void cycleStop() {
-  if (coach.active) coachClose();
-  gPhase = PH_OFF;
-  gPaused = false;
-  nudge.active = false;
-  struct tm t;
-  if (getLocal(t)) autoStartDay = (t.tm_year + 1900) * 10000UL + (t.tm_mon + 1) * 100UL + t.tm_mday;
-  gDirty = true;
+  vitalStop();
 }
 void cyclePauseToggle() {
   if (gPhase == PH_OFF) { cycleStart(); return; }
-  if (!gPaused) { gPaused = true; pauseStart = millis(); toast(TR("Paused", "En pausa")); }
-  else          { gPaused = false; phaseStart += millis() - pauseStart; toast(TR("Resumed", "Seguimos")); }
+  vitalTogglePause();
 }
 
 // v2: no pc-agent. It's always a good moment (local nudges with sound).
@@ -170,7 +161,7 @@ bool goodMoment() {
 void cycleTick() {
   uint32_t now = millis();
 
-  if (gPhase == PH_OFF) return;   // v2: manual start from the Exercise page
+  if (gPhase == PH_OFF) return;   // Vital Dia manda; arranque manual desde Vital
   if (gPaused) return;
 
   // --- Repeated / expired reminders ---
@@ -181,6 +172,10 @@ void cycleTick() {
     }
     if (now - nudge.since > 10 * 60000UL) nudge.active = false;
   }
+
+  // Vital Dia es el unico temporizador: si el dirige, no avanzar aqui
+  // (evita doble transicion con vitalTick). Solo quedan los nudges legacy.
+  if (gVitalDrives) return;
 
   uint32_t el = phaseElapsed();
   switch (gPhase) {
@@ -463,8 +458,7 @@ void drawButton(int x, int y, int w, int h, const char* label, bool filled, uint
 }
 
 void drawFocusPage() {
-  // v2 EXERCISE: today's plan + activation. Creature face: small eyes on
-  // top + rounded card (never a hard fullscreen panel).
+  // VITAL DIA: Exercise es biblioteca + entrenador. El ciclo lo lleva Vital.
   drawHeader(TR("EXERCISE", "EJERCICIO"));
   char b[56];
   // today's plan: 3 exercises (legs/back/arms) rotating by day of year
@@ -494,10 +488,10 @@ void drawFocusPage() {
     else snprintf(b, sizeof(b), "%s - %d s", e.name(), e.holdSec);
     txt(b, 30, 88 + g * 18, 1, TL_DATUM, P.ink);
   }
-  // Cycle status (runs in the background even if you change page)
+  // Vital Dia dirige (gPhase es espejo de Vital). Aqui solo estado + entrenador.
   if (gPhase == PH_OFF) {
-    txt(TR("20' sit - 8' stand - 2' move", "20' sentado - 8' de pie - 2' moverse"), SCR_W / 2, 140, 1, MC_DATUM, P.ink);
-    txt(TR("(Cornell 20-8-2, sound alerts)", "(Cornell 20-8-2, avisos con sonido)"), SCR_W / 2, 152, 1, MC_DATUM, P.inkDim);
+    txt(TR("Run from Vital Day", "Se lleva desde Vital"), SCR_W / 2, 140, 2, MC_DATUM, P.ink);
+    txt(TR("(Cornell 20-8-2, sound alerts)", "(Cornell 20-8-2, avisos con sonido)"), SCR_W / 2, 156, 1, MC_DATUM, P.inkDim);
   } else {
     uint32_t rem = phaseRemainingS();
     uint16_t pc = phaseColor(gPhase);

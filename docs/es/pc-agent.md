@@ -12,6 +12,7 @@ la red Wi-Fi con KT1.
 | `mapping.py` | Tabla app → categoría (`coding`, `web`, `gaming`, `media`, `chat`) y `MIC_IGNORE` |
 | `setup.py` | Configuración guiada: dependencias, OpenCode CLI, `setup.json`, token, modifica el `secrets.h` del firmware, regla del firewall de Windows, acceso directo de inicio automático, registro del firmware OTA y autopruebas |
 | `watchdog.py` | Arranca `bridge.py` y `pet_agent.py` y los reinicia si se caen (lo usa el acceso directo de inicio automático) |
+| `calm_window.py` | **Ventana Calma** en el PC: respiración guiada 60 s en grande, botón **DND 5 min** (vía bridge, se restaura solo) y apertura remota de Calma en KT1 |
 
 ## Instalación
 
@@ -35,6 +36,8 @@ python pet_agent.py --host kt1.local [--host other.local] [--verbose]
 
 python bridge.py [--port 8750] [--config setup.json] [--todo C:\path\to\TODO.md]
                  [--esp http://kt1.local] [--token ...] [--opencode-cli path]
+
+python calm_window.py [--config setup.json] [--lang es|en] [--seconds 60]
 ```
 
 Si `kt1.local` no se resuelve, usa la IP que imprime KT1 al arrancar.
@@ -49,6 +52,7 @@ Si `kt1.local` no se resuelve, usa la IP que imprime KT1 al arrancar.
 | `idle` | Segundos sin teclado/ratón (≥ 300 → «ausente») |
 | `call`, `call_app` | Una app está usando el micrófono. Se lee del indicador de privacidad de Windows (registro `CapabilityAccessManager`): **no se graba ni se escucha nada** |
 | `talk` | Saludar / hablar una vez |
+| `calm` | Abrir la página Calma en KT1 (SOS; lo usa `calm_window.py`) |
 | `build`, `summary` | Estado de la compilación de OpenCode (`busy`/`ok`/`fail`) que reenvía el bridge |
 
 KT1 responde `{"ok":true,"phase":"…","remaining_s":754,"posture":"sit","coach":false,"paused":false}`.
@@ -86,6 +90,13 @@ file explorer, files, code, vscode, vs code, visual studio code, chrome, google 
 microsoft edge, firefox, discord, teams, telegram, whatsapp, spotify, word, excel,
 snipping tool, snip. Español: bloc, bloc de notas, calculadora, consola, explorador,
 archivos, codigo, tijeras, recortes. Edita `APP_MAP` en `bridge.py` para cambiarla.
+
+## Ventana Calma (`calm_window.py`)
+
+Ventana SOS en el PC para tensión, estrés o craving: respiración guiada en grande (mismo
+ciclo de 10 s que KT1), botón para abrir Calma en el dispositivo (`POST /pet {"calm":true}`)
+y botón **DND 5 min** (activa No molestar en Windows vía bridge y lo restaura solo).
+Lee `setup.json` para el ESP, el puerto y el token. No graba ni sube nada.
 
 ## Seguridad
 

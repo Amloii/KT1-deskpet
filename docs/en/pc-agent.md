@@ -12,6 +12,7 @@ Wi-Fi network with KT1.
 | `mapping.py` | App → category table (`coding`, `web`, `gaming`, `media`, `chat`) and `MIC_IGNORE` |
 | `setup.py` | Guided setup: dependencies, OpenCode CLI, `setup.json`, token, patches the firmware `secrets.h`, Windows firewall rule, autostart shortcut, OTA firmware registration and self-tests |
 | `watchdog.py` | Starts `bridge.py` and `pet_agent.py` and restarts them if they die (used by the autostart shortcut) |
+| `calm_window.py` | **Calm window** on the PC: big 60 s guided breathing, **DND 5 min** button (via bridge, self-restoring) and remote Calm opening on KT1 |
 
 ## Install
 
@@ -35,6 +36,8 @@ python pet_agent.py --host kt1.local [--host other.local] [--verbose]
 
 python bridge.py [--port 8750] [--config setup.json] [--todo C:\path\to\TODO.md]
                  [--esp http://kt1.local] [--token ...] [--opencode-cli path]
+
+python calm_window.py [--config setup.json] [--lang es|en] [--seconds 60]
 ```
 
 If `kt1.local` does not resolve, use the IP printed by KT1 at boot.
@@ -49,6 +52,7 @@ If `kt1.local` does not resolve, use the IP printed by KT1 at boot.
 | `idle` | Seconds without keyboard/mouse (≥ 300 → "away") |
 | `call`, `call_app` | An app is using the microphone. Read from the Windows privacy indicator (registry `CapabilityAccessManager`): **nothing is recorded or listened to** |
 | `talk` | Greet / speak once |
+| `calm` | Open the Calm page on KT1 (SOS; used by `calm_window.py`) |
 | `build`, `summary` | OpenCode build state (`busy`/`ok`/`fail`) forwarded by the bridge |
 
 KT1 answers `{"ok":true,"phase":"…","remaining_s":754,"posture":"sit","coach":false,"paused":false}`.
@@ -86,6 +90,13 @@ file explorer, files, code, vscode, vs code, visual studio code, chrome, google 
 microsoft edge, firefox, discord, teams, telegram, whatsapp, spotify, word, excel,
 snipping tool, snip. Spanish: bloc, bloc de notas, calculadora, consola, explorador,
 archivos, codigo, tijeras, recortes. Edit `APP_MAP` in `bridge.py` to change it.
+
+## Calm window (`calm_window.py`)
+
+SOS window on the PC for tension, stress or craving: big guided breathing (same 10 s
+cycle as KT1), a button to open Calm on the device (`POST /pet {"calm":true}`) and a
+**DND 5 min** button (turns Windows Do-Not-Disturb on via the bridge and restores it
+alone). Reads `setup.json` for the ESP, port and token. Records and uploads nothing.
 
 ## Security
 

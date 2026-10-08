@@ -508,36 +508,64 @@ void drawClockDatePage() {
 //  All text goes through chatToAscii (no accents or markdown): the TFT lacks
 //  those glyphs and showed "Ã¡"/"?" while thinking/talking.
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//  VOICE CHAT v4 WOW (cinema): compact eyes, pulsing pill, level/waveform,
+//  typewriter THINK, paginated text (txtWrapScroll 1/3), confetti on
+//  TODO/REMIND/MEMORY/FOCUS, mic icon on TALK.
+//  Tap = talk 4 s; hold = replay. Cinema hides page dots (see render()).
+// ---------------------------------------------------------------------------
+static void chatConfettiDraw() {
+  if ((int32_t)(chatConfettiUntil - millis()) <= 0) return;
+  uint32_t dt = chatConfettiUntil - millis();  // counts down
+  float p = 1.0f - dt / 1600.0f;               // 0 -> 1
+  uint16_t cols[4] = { P.ok, P.warn, P.accent, P.danger };
+  for (int i = 0; i < 24; i++) {
+    int sx = (i * 53 + 17) % SCR_W;
+    int x = sx + (int)(sinf(i * 1.7f + p * 6.0f) * 12);
+    int y = 30 + (int)(p * (150 + (i * 37) % 60)) % 170;
+    if (y > 190) continue;
+    spr.fillCircle(x, y, 2 + (i % 2), cols[i & 3]);
+  }
+}
 void drawChatPage() {
   drawHeader(TR("VOICE CHAT", "CHAT VOZ"));
   if (chatState == CHAT_IDLE && !chatHasAnswer) {
     drawEyesAt(SCR_W / 2, 92, 0.80f);
     txt(TR("Tap TALK and speak", "Toca HABLAR y habla"), SCR_W / 2, 142, 2, MC_DATUM, P.ink);
   } else {
-    drawEyesAt(SCR_W / 2, 40, 0.30f);
+    // Compact eyes leave room for 3-line paginated text (no aura frame).
+    float es = (chatState == CHAT_IDLE) ? 0.42f : 0.38f;
+    int ey = (chatState == CHAT_IDLE) ? 50 : 46;
+    drawEyesAt(SCR_W / 2, ey, es);
     if (chatState == CHAT_THINK) {
-      // Thought bubble: three rising dots + "?" (below the clock, to the
-      // right of the eyes)
       spr.fillCircle(218, 52, 3, P.ink);
       spr.fillCircle(232, 44, 4, P.ink);
       spr.fillCircle(250, 34, 9, P.ink);
       txt("?", 250, 34, 1, MC_DATUM, P.bg);
     }
     if (chatState != CHAT_IDLE) {
-      // Status pill (color per phase, like reference assistants)
-      const char* st;
-      uint16_t bg;
+      const char* st; uint16_t bg;
       if (chatState == CHAT_REC) { st = TR("LISTENING", "ESCUCHANDO"); bg = P.danger; }
       else if (chatState == CHAT_THINK) { st = TR("THINKING", "PENSANDO"); bg = P.warn; }
       else { st = gSoundOn ? TR("SPEAKING", "HABLANDO") : TR("TEXT", "TEXTO"); bg = P.ok; }
+      // Typewriter dots while thinking.
+      char pill[24];
+      if (chatState == CHAT_THINK) {
+        int dots = 1 + ((millis() - chatThinkT0) / 400) % 3;
+        snprintf(pill, sizeof(pill), "%s", st);
+        for (int i = 0; i < dots && strlen(pill) < sizeof(pill) - 2; i++) strlcat(pill, ".", sizeof(pill));
+        st = pill;
+      }
       int pw = spr.textWidth(st, 2) + 30;
-      spr.fillRoundRect(SCR_W / 2 - pw / 2, 58, pw, 16, 8, bg);
-      txt(st, SCR_W / 2, 66, 2, MC_DATUM, P.bg);
+      // Pulse: outer halo breathing.
+      uint8_t pl = (uint8_t)(170 + 60 * sinf(millis() / 240.0f));
+      spr.drawRoundRect(SCR_W / 2 - pw / 2 - 2, 76, pw + 4, 20, 10, dim565(bg, pl));
+      spr.fillRoundRect(SCR_W / 2 - pw / 2, 78, pw, 16, 8, bg);
+      txt(st, SCR_W / 2, 86, 2, MC_DATUM, P.bg);
     }
     if (chatState == CHAT_REC) {
-      // Mic level meter (bars) + progress of the 4 s recording
       int nb = 7, bw = 16, gap = 8;
-      int x0 = SCR_W / 2 - (nb * bw + (nb - 1) * gap) / 2, yb = 130;
+      int x0 = SCR_W / 2 - (nb * bw + (nb - 1) * gap) / 2, yb = 138;
       for (int i = 0; i < nb; i++) {
         float wob = 0.55f + 0.45f * sinf(millis() / 180.0f + i * 1.1f);
         int h = constrain((int)(chatLevel * wob * 42 / 100), 3, 42);
@@ -546,28 +574,41 @@ void drawChatPage() {
       }
       uint32_t el = millis() - chatRecT0;
       float f = constrain((float)el / (chatRecSpan ? chatRecSpan : 4000), 0, 1);
-      spr.fillRoundRect(60, 138, 200, 6, 3, P.card);
-      spr.fillRoundRect(62, 139, (int)(196 * f), 4, 2, P.danger);
+      spr.fillRoundRect(60, 144, 200, 6, 3, P.card);
+      spr.fillRoundRect(62, 145, (int)(196 * f), 4, 2, P.danger);
     } else if (chatState == CHAT_IDLE) {
-      // Full answer at rest: "You:" on top and the answer auto-paginated
-      // in font 2 (always readable). The "1/3" shows it rotates by itself.
       char u[80];
       snprintf(u, sizeof(u), TR("You: %.60s", "Tu: %.60s"), chatUser[0] ? chatUser : "...");
-      txt(u, SCR_W / 2, 62, 1, MC_DATUM, P.inkDim);
-      txtWrapScroll(chatBot, SCR_W / 2, 72, SCR_W - 24, 78, 2, P.ink);
-    } else {
-      // THINK: previous text dimmed and truncated (doesn't cover "Thinking...");
-      // TALK: chunk being spoken (short, auto 4->2, no mini font).
-      bool sub = (chatState == CHAT_TALK && chatSub[0]);
-      if (chatState == CHAT_THINK)
-        txtWrap(chatBot, SCR_W / 2, 78, SCR_W - 24, 72, 4, P.inkDim);
-      else
-        txtWrap(sub ? chatSub : chatBot, SCR_W / 2, 78, SCR_W - 24, 72, 4, P.ink);
+      txt(u, SCR_W / 2, 98, 1, MC_DATUM, P.inkDim);
+      // Paginated (was txtWrap: truncated to 2 lines). Box 106..150 = 44px -> 2 lines
+      // per page rotating 1/3 automatically.
+      txtWrapScroll(chatBot, SCR_W / 2, 106, SCR_W - 24, 44, 2, P.ink);
+    } else if (chatState == CHAT_THINK) {
+      // Paginated dimmed previous answer (was txtWrap: cut off).
+      txtWrapScroll(chatBot, SCR_W / 2, 100, SCR_W - 24, 50, 2, P.inkDim);
+    } else {  // TALK: live waveform behind karaoke subtitle, paginated
+      int nb = 9, bw = 12, gap = 6;
+      int x0 = SCR_W / 2 - (nb * bw + (nb - 1) * gap) / 2, yb = 108;
+      for (int i = 0; i < nb; i++) {
+        float wob = 0.5f + 0.5f * sinf(millis() / 160.0f + i * 0.9f);
+        int h = 4 + (int)(wob * 10);
+        spr.fillRoundRect(x0 + i * (bw + gap), yb - h / 2, bw, h, 3, P.ok);
+      }
+      bool sub = (chatSub[0] != 0);
+      txtWrapScroll(sub ? chatSub : chatBot, SCR_W / 2, 114, SCR_W - 24, 36, 2, P.ink);
     }
   }
   bool busy = (chatState != CHAT_IDLE);
   drawButton(CHAT_BTN_X, CHAT_BTN_Y, CHAT_BTN_W, CHAT_BTN_H,
              busy ? "..." : TR("TALK", "HABLAR"), !busy, P.accent);
+  if (!busy) {
+    // Mic icon on the button (left side).
+    int mx = CHAT_BTN_X + 26, my = CHAT_BTN_Y + CHAT_BTN_H / 2;
+    spr.fillRoundRect(mx - 5, my - 9, 10, 14, 5, P.bg);
+    spr.drawRoundRect(mx - 8, my - 4, 16, 10, 5, P.bg);
+    spr.fillRect(mx - 1, my + 8, 2, 5, P.bg);
+  }
+  chatConfettiDraw();
 }
 
 void chatTap(int x, int y) {

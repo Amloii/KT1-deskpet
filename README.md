@@ -69,6 +69,8 @@ microphone is live it stays quiet until the call is over.
 - 🧍 **Movement coach** for standing desks: 20 min sitting → 8 min standing → 2 min of
   movement (Cornell), guided active breaks with dumbbells or mobility, daily stats.
 - 🍅 **Pomodoro** with *Work / Writing / Leisure* modes and gentle encouragement.
+- 🧘 **Calm** SOS window for tension, stress or craving: 60 s breathing, 3 min urge
+  surfing and 5-4-3-2-1 grounding, plus a PC window with 5 min DND.
 - 🪴 **Plants**: measures light, temperature and humidity and tells you whether the spot
   suits your plant.
 - 🌤️ **Weather** (Open-Meteo, no key) and **clock** synced by NTP.
@@ -159,7 +161,7 @@ firmware/kt1-deskpet/   Arduino sketch (.ino + modules .h)
   lang.h          UI languages (TR("English", "Spanish"))
   exercises.h     editable exercise library
   secrets.example.h   template → copy to secrets.h (git-ignored)
-pc-agent/         Windows companion (Python): bridge.py, pet_agent.py, setup.py, watchdog.py
+pc-agent/         Windows companion (Python): bridge.py, pet_agent.py, calm_window.py, setup.py, watchdog.py
 docs/en, docs/es  documentation in both languages · docs/media: videos
 ```
 

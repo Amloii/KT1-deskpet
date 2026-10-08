@@ -486,6 +486,7 @@ void updateFaceAnim(Mood m) {
       case PAGE_PLANTS:   ax = 0; ay = 14; break;   // selector + data below
       case PAGE_CHAT:     ax = 0; ay = -22; break;  // looking up: thinking/speaking
       case PAGE_VITAL:    ax = 0; ay = 12; break;   // countdown and buttons below
+      case PAGE_CALM:     ax = 0; ay = 12; break;   // breathing circle below
       default:            ax = 0; ay = 10; break;
     }
     tx = ax + randGX * 0.35f + imuGazeX * 0.4f;

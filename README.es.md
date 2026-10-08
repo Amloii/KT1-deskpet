@@ -69,6 +69,8 @@ el micro abierto se calla hasta que termina la llamada.
 - 🧍 **Entrenador de movimiento** para escritorios elevables: 20 min sentado → 8 min de pie → 2 min de
   movimiento (Cornell), pausas activas guiadas con mancuernas o movilidad, estadísticas diarias.
 - 🍅 **Pomodoro** con modos *Trabajo / Escritura / Ocio* y mensajes de ánimo discretos.
+- 🧘 **Calma**, ventana SOS para tensión, estrés o craving: respiración 60 s, surfear el
+  impulso 3 min y anclaje 5-4-3-2-1, más ventana en el PC con DND 5 min.
 - 🪴 **Plantas**: mide luz, temperatura y humedad y te dice si el sitio le viene bien a tu
   planta.
 - 🌤️ **Tiempo** (Open-Meteo, sin clave) y **reloj** sincronizado por NTP.
@@ -159,7 +161,7 @@ firmware/kt1-deskpet/   sketch de Arduino (.ino + módulos .h)
   lang.h          idiomas de la interfaz (TR("texto en inglés", "texto en español"))
   exercises.h     biblioteca de ejercicios editable
   secrets.example.h   plantilla → copiar a secrets.h (ignorado por git)
-pc-agent/         compañero de Windows (Python): bridge.py, pet_agent.py, setup.py, watchdog.py
+pc-agent/         compañero de Windows (Python): bridge.py, pet_agent.py, calm_window.py, setup.py, watchdog.py
 docs/en, docs/es  documentación en los dos idiomas · docs/media: vídeos
 ```
 

@@ -1,11 +1,11 @@
 // ===========================================================================
-//  plants.h — Plant check v2 (DHT11 + LDR).
-//  When started: measures ~8 s (averages light + temp + humidity) and compares
-//  with the chosen plant's table: Low / Ideal / High with its range.
-//  Rough indoor ranges (light in approx. lux, uncalibrated LDR).
-//  Visual: rounded creature card + small eyes on top.
+//  plants.h — Plant check v3 (DHT11 + LDR): visual pixel-art catalog +
+//  live light meter + ideal-range bars + score + actionable advice.
+//  Icons: 32x32 nibble pixel-art negro+verde (plants_icons.h, generated
+//  by tools/gen_plant_pixel.py, previews in docs/media/plants_pixel/).
 // ===========================================================================
 #pragma once
+#include "plants_icons.h"
 
 struct PlantSpec {
   const char* nameL[LANG_COUNT];   // on-screen name { en, es }
@@ -37,6 +37,12 @@ long plantAdcAcc = 0;   // raw ADC sum (to calibrate lux)
 int plantDhtN = 0;   // good DHT11 reads (own counter, not derived from the LDR)
 uint32_t plantLastSample = 0, plantLastDht = 0;
 char plantErr[32] = "";
+// Scout mode (IDLE on the Plants page): LDR every ~0.4 s + single-shot
+// DHT11 every 2 s (no retries: fail keeps last value). Feeds the live
+// gauges + advice so you can walk around seeking a good spot.
+float plantLiveLux = 0, plantLiveTemp = NAN, plantLiveHum = -1;
+bool plantHasLive = false, plantLiveDht = false;
+uint32_t plantLiveT = 0, plantLiveDhtT = 0;
 
 void plantInit() {
 #if PLANT_ENABLED
@@ -118,8 +124,34 @@ void plantTick() {
 #if !PLANT_ENABLED
   return;
 #endif
-  if (plantState != PL_MEASURING) return;
   uint32_t now = millis();
+  // Sensors only live on this page: no ADC/DHT activity elsewhere.
+  // Leaving mid-measurement aborts it (no silent sampling in background).
+  if (gPage != PAGE_PLANTS) {
+    if (plantState == PL_MEASURING) {
+      plantState = PL_IDLE;
+      Serial.println("[PLANTS] aborted (page left)");
+    }
+    return;
+  }
+  if (plantState == PL_IDLE) {
+    bool upd = false;
+    if (now - plantLiveT >= 400) {
+      plantLiveT = now;
+      plantLiveLux = ldrToLux(analogRead(LDR_PIN));
+      plantHasLive = true; upd = true;
+    }
+    // DHT11: single shot every 2 s (dht11Read() retries with delays and
+    // would block; here a miss just keeps the previous value)
+    if (now - plantLiveDhtT >= 2000) {
+      plantLiveDhtT = now;
+      float t, h;
+      if (dht11ReadOnce(t, h)) { plantLiveTemp = t; plantLiveHum = h; plantLiveDht = true; upd = true; }
+    }
+    if (upd) gDirty = true;
+    return;
+  }
+  if (plantState != PL_MEASURING) return;
   if (now - plantLastSample >= 400) {
     plantLastSample = now;
     int adc = analogRead(LDR_PIN);
@@ -159,29 +191,24 @@ void plantTick() {
 void plantTap(int x, int y) {
   if (plantState == PL_MEASURING) return;  // ignore touches while measuring
   if (plantState == PL_RESULT) {
-    if (y >= 172) {
+    if (y >= 164) {
       if (x < 160) plantStart();       // measure again
       else { plantState = PL_IDLE; gDirty = true; }
       return;
     }
-    // tapping the top also changes plant on the result screen
+    plantState = PL_IDLE; gDirty = true;  // tap top = back to catalog
+    return;
   }
-  // PL_IDLE: selector + measure
-  if (y >= 60 && y < 92) {
-    if (x < 60) { plantIdx = (plantIdx + PLANT_N - 1) % PLANT_N; toast(PLANTS[plantIdx].name(), 800); return; }
-    if (x > SCR_W - 60) { plantIdx = (plantIdx + 1) % PLANT_N; toast(PLANTS[plantIdx].name(), 800); return; }
-  }
-  if (y >= 92 && y < 118) {
-    // plant dots (6): same coordinates as the drawing (y=104)
-    int sp = 26, x0 = SCR_W / 2 - (PLANT_N - 1) * sp / 2;
-    for (int i = 0; i < PLANT_N; i++) {
-      if (abs(x - (x0 + i * sp)) < 14) { plantIdx = i; gDirty = true; return; }
+  // PL_IDLE: bottom strip = catalog (6 slots of 48 px from x=16, y>=158),
+  // tap anywhere above = measure here (scout page doubles as finder)
+  if (y >= 158) {
+    if (x >= 16 && x < 304) {
+      int i = constrain((x - 16) / 48, 0, PLANT_N - 1);
+      if (i != plantIdx) { plantIdx = i; toast(PLANTS[plantIdx].name(), 800); gDirty = true; }
     }
+    return;
   }
-  if (y >= 168) {
-    if (x < 210) plantStart();   // "Measure" drawn at x 8-208
-    else { plantIdx = (plantIdx + 1) % PLANT_N; gDirty = true; }
-  }
+  plantStart();
 }
 
 // Low/Ideal/High chip: -1 low, 0 ideal, 1 high
@@ -200,57 +227,169 @@ void plantChip(int x, int y, int w, const char* label, int rate) {
   txt(b, x + w / 2, y + 11, 1, MC_DATUM, c);
 }
 
+// --- v3 visuals: nibble icon -> screen (tinted by brightness) ---
+uint16_t plantIconCol(uint8_t n) {
+  switch (n) {
+    case 1: return tint(rgb(11, 61, 46));    // shadow
+    case 2: return P.ok;                      // main green (C_OK)
+    case 3: return tint(rgb(165, 243, 207));  // highlight
+    case 4: return tint(rgb(16, 26, 22));     // pot (greenish black)
+    default: return 0;
+  }
+}
+void drawPlantIcon(int idx, int x, int y, int scale) {
+  if (idx < 0 || idx >= PLANT_N) return;
+  const uint8_t* d = PLANT_ICONS[idx];
+  for (int py = 0; py < 32; py++) {
+    for (int px = 0; px < 32; px++) {
+      uint8_t b = d[(py * 32 + px) >> 1];
+      uint8_t n = (px & 1) ? (b & 0x0F) : (b >> 4);
+      if (!n) continue;
+      if (scale <= 1) spr.drawPixel(x + px, y + py, plantIconCol(n));
+      else spr.fillRect(x + px * scale, y + py * scale, scale, scale, plantIconCol(n));
+    }
+  }
+}
+// Ideal-range bar with live marker. Lux is log-scale (100..60000).
+// rate colors the zone + marker: 0 = inside (green), +-1 = outside (amber),
+// -2 = no data yet (dim, marker parked at the left edge).
+void plantBar(int x, int y, int w, float v, float lo, float hi,
+              float dmin, float dmax, bool isLog, int rate) {
+  auto mapv = [&](float t) -> float {
+    t = constrain(t, dmin, dmax);
+    if (isLog) return (log10f(t) - log10f(dmin)) / (log10f(dmax) - log10f(dmin));
+    return (t - dmin) / (dmax - dmin);
+  };
+  spr.fillRoundRect(x, y, w, 6, 3, P.line);
+  int x0 = x + (int)(w * mapv(lo)), x1 = x + (int)(w * mapv(hi));
+  uint16_t zc = rate == 0 ? P.ok : (rate == -2 ? P.line : P.inkDim);
+  if (x1 > x0) spr.fillRoundRect(x0, y, x1 - x0, 6, 2, zc);
+  float f = (rate == -2) ? 0 : mapv(v);
+  int mx = x + (int)(w * constrain(f, 0, 1));
+  uint16_t mc = rate == 0 ? P.ok : (rate == -2 ? P.inkDim : P.warn);
+  spr.drawFastVLine(mx, y - 3, 12, P.ink);
+  spr.fillCircle(mx, y + 3, 3, mc);
+}
+int plantScore(float lux, float t, float h, const PlantSpec& p) {
+  bool noDht = (isnan(t) || h < 0);
+  float pl = 0, pt = 0, ph = 0;
+  if (lux < p.luxMin) pl = constrain((p.luxMin - lux) / p.luxMin, 0, 1);
+  else if (lux > p.luxMax) pl = constrain((lux - p.luxMax) / p.luxMax, 0, 1);
+  if (!noDht) {
+    if (t < p.tMin) pt = constrain((p.tMin - t) / 10.0f, 0, 1);
+    else if (t > p.tMax) pt = constrain((t - p.tMax) / 10.0f, 0, 1);
+    if (h < p.hMin) ph = constrain((p.hMin - h) / 40.0f, 0, 1);
+    else if (h > p.hMax) ph = constrain((h - p.hMax) / 40.0f, 0, 1);
+    return constrain((int)(100 - 50 * pl - 25 * pt - 25 * ph), 0, 100);
+  }
+  return constrain((int)(100 - 100 * pl), 0, 100);
+}
+// One actionable line: worst offender first (light > temp > humidity)
+const char* plantAdvice(int rl, int rt, int rh) {
+  if (rl < 0) return TR("Move nearer the window", "Acerca a la ventana");
+  if (rl > 0) return TR("Shade from direct sun", "Quita del sol directo");
+  if (rt < 0) return TR("Warmer spot, no draught", "Sitio calido, sin frio");
+  if (rt > 0) return TR("Ventilate a little", "Ventila un poco");
+  if (rh < 0) return TR("Mist the leaves", "Pulveriza las hojas");
+  if (rh > 0) return TR("Air out, less water", "Ventila, menos agua");
+  return TR("Happy here!", "Feliz aqui!");
+}
+
+void drawPlantIdle(const PlantSpec& p) {
+  char b[40];
+  // Live rates from scout values (unknown until first scout sample)
+  int rl = !plantHasLive ? -2 : plantRate(plantLiveLux, p.luxMin, p.luxMax);
+  int rt = !plantLiveDht ? -2 : plantRate(plantLiveTemp, p.tMin, p.tMax);
+  int rh = !plantLiveDht ? -2 : plantRate(plantLiveHum, p.hMin, p.hMax);
+  bool allOk = plantHasLive && plantLiveDht && rl == 0 && rt == 0 && rh == 0;
+  uint16_t cl = rl == 0 ? P.ok : (rl == -2 ? P.inkDim : P.warn);
+  uint16_t ct = rt == 0 ? P.ok : (rt == -2 ? P.inkDim : P.warn);
+  uint16_t ch = rh == 0 ? P.ok : (rh == -2 ? P.inkDim : P.warn);
+  // left creature card (8,46,116,100 -> 46..146): big icon + name
+  spr.fillRoundRect(8, 46, 116, 100, 10, P.card);
+  spr.drawRoundRect(8, 46, 116, 100, 10, allOk ? P.ok : P.line);
+  drawPlantIcon(plantIdx, 34, 52, 2);   // 52..116
+  txtFit(p.name(), 66, 130, 104, 2, MC_DATUM, P.accent);   // ~122..138
+  // right: 3 live gauges (value colored by status)
+  if (plantHasLive) snprintf(b, sizeof(b), "%s %.0f lx", TR("Light", "Luz"), plantLiveLux);
+  else snprintf(b, sizeof(b), "%s -- lx", TR("Light", "Luz"));
+  txt(b, 132, 50, 2, TL_DATUM, cl);
+  plantBar(132, 68, 180, plantLiveLux, p.luxMin, p.luxMax, 100, 60000, true, rl);
+  if (plantLiveDht) snprintf(b, sizeof(b), "Temp %.0f C", plantLiveTemp);
+  else snprintf(b, sizeof(b), "Temp -- C");
+  txt(b, 132, 80, 2, TL_DATUM, ct);
+  plantBar(132, 98, 180, plantLiveTemp, p.tMin, p.tMax, 10, 35, false, rt);
+  if (plantLiveDht) snprintf(b, sizeof(b), "Hum %.0f %%", plantLiveHum);
+  else snprintf(b, sizeof(b), "Hum -- %%");
+  txt(b, 132, 110, 2, TL_DATUM, ch);
+  plantBar(132, 128, 180, plantLiveHum, p.hMin, p.hMax, 0, 100, false, rh);   // ends 134
+  // live advice: 2-line box in the right column (136..156), clear of card+strip
+  const char* adv; uint16_t advC;
+  if (rl == -2 && rt == -2) { adv = TR("Seeking...", "Buscando..."); advC = P.inkDim; }
+  else {
+    int ql = rl == -2 ? 0 : rl, qt = rt == -2 ? 0 : rt, qh = rh == -2 ? 0 : rh;
+    adv = plantAdvice(ql, qt, qh);
+    advC = (ql == 0 && qt == 0 && qh == 0) ? P.ok : P.warn;
+  }
+  txtWrap(adv, 222, 136, 172, 20, 1, advC);
+  // bottom: pixel-art catalog strip (6 x 48 px slots, 160..194)
+  for (int i = 0; i < PLANT_N; i++) {
+    int sx = 16 + i * 48;
+    spr.fillRoundRect(sx, 160, 44, 34, 8, P.card);
+    if (i == plantIdx) spr.drawRoundRect(sx, 160, 44, 34, 8, P.accent);
+    else spr.drawRoundRect(sx, 160, 44, 34, 8, P.line);
+    drawPlantIcon(i, sx + 6, 161, 1);   // 161..193
+  }
+}
+
 void drawPlantPage() {
   drawHeader(TR("PLANTS", "PLANTAS"));
   const PlantSpec& p = PLANTS[plantIdx];
-  drawEyesAt(SCR_W / 2, 52, 0.32f);   // the creature looks at the plants
-  char b[48];
+  char b[64];
+  drawEyesAt(SCR_W / 2, 38, 0.22f);   // the creature looks at the plants
 
-  // plant selector (rounded creature arrows)
-  drawArrowButton(4, 66, 44, 28, true);
-  drawArrowButton(SCR_W - 48, 66, 44, 28, false);
-  txt(p.name(), SCR_W / 2, 80, 4, MC_DATUM, P.accent);
-  int sp = 26, x0 = SCR_W / 2 - (PLANT_N - 1) * sp / 2;
-  for (int i = 0; i < PLANT_N; i++) {
-    if (i == plantIdx) spr.fillCircle(x0 + i * sp, 104, 4, P.accent);
-    else spr.drawCircle(x0 + i * sp, 104, 3, P.inkDim);
-  }
-
-  if (plantState == PL_IDLE) {
-    snprintf(b, sizeof(b), TR("Light %d-%d lux", "Luz %d-%d lux"), p.luxMin, p.luxMax);
-    txt(b, SCR_W / 2, 122, 2, MC_DATUM, P.ink);
-    snprintf(b, sizeof(b), "Temp %d-%d C   Hum %d-%d %%", p.tMin, p.tMax, p.hMin, p.hMax);
-    txt(b, SCR_W / 2, 140, 1, MC_DATUM, P.inkDim);
-    txt(TR("Place buddy next to the plant", "Pon el buddy junto a la planta"), SCR_W / 2, 156, 1, MC_DATUM, P.inkDim);
-    drawButton(8, 168, 200, 26, TR("Measure (~8 s)", "Medir (~8 s)"), true, P.ok);
-    drawButton(214, 168, 98, 26, TR("Plant", "Planta"), false);
-    return;
-  }
+  if (plantState == PL_IDLE) { drawPlantIdle(p); return; }
   if (plantState == PL_MEASURING) {
     float f = constrain((float)(millis() - plantT0) / PLANT_MEAS_MS, 0, 1);
     uint32_t left = (PLANT_MEAS_MS - (millis() - plantT0) + 999) / 1000;
+    int yo = (int)(sinf(millis() / 300.0f) * 3);   // breathing plant
+    drawPlantIcon(plantIdx, 128, 56 + yo, 2);
     snprintf(b, sizeof(b), TR("Measuring... %lu s", "Midiendo... %lu s"), (unsigned long)left);
-    txt(b, SCR_W / 2, 122, 2, MC_DATUM, P.accent);
-    spr.fillRoundRect(60, 142, 200, 10, 5, P.card);
-    spr.fillRoundRect(62, 144, 196 * f, 6, 3, P.accent);
-    txt(TR(" hold still, sensors clear ", " quieto, sin tapar sensores "), SCR_W / 2, 160, 1, MC_DATUM, P.inkDim);
+    txt(b, SCR_W / 2, 134, 2, MC_DATUM, P.accent);
+    spr.fillRoundRect(60, 148, 200, 8, 4, P.card);
+    spr.fillRoundRect(62, 150, (int)(196 * f), 4, 2, P.accent);
+    float avg = plantSamples > 0 ? plantLuxAcc / plantSamples : 0;
+    if (plantSamples > 0 && plantLiveDht)
+      snprintf(b, sizeof(b), "%.0f lx  %.0f C  %.0f %%", avg, plantLiveTemp, plantLiveHum);
+    else if (plantSamples > 0)
+      snprintf(b, sizeof(b), "%.0f lux  %d/8 s", avg, (int)((millis() - plantT0) / 1000));
+    else snprintf(b, sizeof(b), TR(" hold still, sensors clear ", " quieto, sin tapar sensores "));
+    txt(b, SCR_W / 2, 164, 1, MC_DATUM, P.inkDim);
     return;
   }
-  // RESULT
-  if (plantErr[0] && isnan(plantTemp)) txt(TR("DHT11 no reading", "DHT11 sin lectura"), SCR_W / 2, 118, 1, MC_DATUM, P.danger);
-  else {
-    snprintf(b, sizeof(b), "%.0f lux  %.0f C  %.0f %%", plantLux, plantTemp, plantHum);
-    txt(b, SCR_W / 2, 118, 2, MC_DATUM, P.ink);
-  }
+  // RESULT: icon + score | values + chips | advice + buttons
   int rl = plantRate(plantLux, p.luxMin, p.luxMax);
   int rt = plantRate(plantTemp, p.tMin, p.tMax);
   int rh = plantHum < 0 ? -2 : plantRate(plantHum, p.hMin, p.hMax);
-  plantChip(14, 134, 92, TR("Light", "Luz"), rl);
-  plantChip(114, 134, 92, "Temp", rt);
-  plantChip(214, 134, 92, "Hum", rh);
-  // ideal range below
-  snprintf(b, sizeof(b), "ideal: %d-%d lx %d-%dC %d-%d%%", p.luxMin, p.luxMax, p.tMin, p.tMax, p.hMin, p.hMax);
-  txt(b, SCR_W / 2, 162, 1, MC_DATUM, P.inkDim);
-  drawButton(8, 168, 150, 26, TR("Repeat", "Repetir"), true, P.ok);
-  drawButton(162, 168, 150, 26, TR("Plants", "Plantas"), false);
+  int sc = plantScore(plantLux, plantTemp, plantHum, p);
+  uint16_t scc = sc >= 80 ? P.ok : (sc >= 50 ? P.warn : P.danger);
+  spr.fillRoundRect(8, 46, 116, 108, 10, P.card);   // 46..154
+  spr.drawRoundRect(8, 46, 116, 108, 10, scc);
+  txtFit(p.name(), 66, 54, 104, 1, MC_DATUM, P.inkDim);
+  drawPlantIcon(plantIdx, 34, 60, 2);   // 60..124
+  snprintf(b, sizeof(b), "%d", sc);
+  txt(b, 66, 140, 4, MC_DATUM, scc);   // ~127..153
+  if (plantErr[0] && isnan(plantTemp))
+    txt(TR("DHT11 no reading", "DHT11 sin lectura"), 222, 58, 1, MC_DATUM, P.danger);
+  else {
+    snprintf(b, sizeof(b), "%.0f lx  %.0f C  %.0f %%", plantLux, plantTemp, plantHum);
+    txt(b, 222, 58, 2, MC_DATUM, P.ink);
+  }
+  plantChip(132, 72, 180, TR("Light", "Luz"), rl);
+  plantChip(132, 98, 180, "Temp", rt);
+  plantChip(132, 124, 180, "Hum", rh);   // ends 146
+  txtFit(plantAdvice(rl == -2 ? 0 : rl, rt == -2 ? 0 : rt, rh == -2 ? 0 : rh),
+         SCR_W / 2, 158, 300, 1, MC_DATUM, (rl == 0 && rt == 0 && (rh == 0 || rh == -2)) ? P.ok : P.warn);
+  drawButton(8, 168, 150, 24, TR("Repeat", "Repetir"), true, P.ok);
+  drawButton(162, 168, 150, 24, TR("Plants", "Plantas"), false);
 }

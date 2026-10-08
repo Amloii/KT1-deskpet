@@ -189,6 +189,7 @@ void handlePet() {
   gAgent.idle = d["idle"] | 0;
   gAgent.call = d["call"] | false;
   if (d["talk"] | false) gAgent.greet = true;
+  if (d["calm"] | false) reqCalmPage = true;   // SOS: open the Calm page
   const char* b = d["build"] | "";
   if (b[0]) {
     strlcpy(gBuild, b, sizeof(gBuild));

@@ -9,12 +9,14 @@
 | Horizontal swipe | Previous / next page (the dots below show the position) |
 | Vertical swipe | Brightness up / down |
 | Long press (most pages) | Change accent colour |
+| Long press on **Face** | Open **Calm** (SOS breathing) |
+| Long press on **Calm** | End the session |
 | Finger resting on the face | The eyes follow your finger |
 | Tilt KT1 (with GY-521) | The eyes look to that side |
 | Shake it | Dizzy spiral eyes for a few seconds |
 
-After 90 s without touching it returns to the **Face**, unless a pomodoro, a nudge or an
-active break is running.
+After 90 s without touching it returns to the **Face**, unless a pomodoro, a Calm session,
+a nudge or an active break is running.
 
 ### Touch sensor (TTP223)
 
@@ -25,23 +27,25 @@ plant measurement → otherwise **petting**.
 - **Short touch** (< 0.4 s): main action (confirm, start, pause…) or a greeting.
 - **Hold** (≥ 0.9 s): strong action (finish, exit…) or cuddles + purring.
 - On the **Chat** page: hold to talk (push-to-talk), touch to replay the answer.
+- On the **Calm** page: touch to pause/advance, hold to finish.
 
 ## Pages
 
 | # | Page | What it does |
 |---|---|---|
 | 1 | **Face** | Animated eyes with 10 moods, blinking, idle gestures. Top bar: time, cycle phase and minutes left, outside temperature, Wi-Fi. Tap = next mood. Shows posture nudges and Vital alerts |
-| 2 | **Exercise** | Sit/stand cycle **20 min sitting → 8 min standing → 2 min moving** (Cornell). Every 4 cycles, a longer circuit break. Today's muscle group (legs / back / arms) |
+| 2 | **Exercise** | Trainer library: today's legs / back / arms plan + guided coach (3-2-1, beep per rep, side change, rest). The day cycle is run from Vital |
 | — | *Coach* (overlay) | Guides each active break: 3-2-1 countdown, one beep per repetition, side change, rest. Buttons *Other* / *No weights* / *Skip* |
 | 3 | **Pomodoro** | *Work* fixed + *Writing/Leisure* flow count-up, per-mode times (25/5, 50/10, 15/15) editable inline, per-mode start/end tones, voice task binding (`FOCUS:` sets task + mode, starts focus, speaks one tailored tip shown on the break card), auto 4-cycle + long break, dots + per-mode today count, quiet mode, Pause/End (End asks twice), inline notices on their own line that never cover the buttons |
-| 4 | **Plants** | Pick a plant and tap **Measure**: ~8 s of light (LDR), temperature and humidity (DHT11) compared with its ideal ranges → *Low / Ideal / High* |
-| 5 | **Vital** | Alternative posture shifts SITTING / STANDING / RELAX (mobility only). Configurable intervals. Mutually exclusive with *Exercise* |
-| 6 | **Weather** | Open-Meteo (no key): icon, temperature, feels like, humidity, wind, max/min, rain chance, sunrise/sunset. Every 15 min; tap = refresh |
-| 7 | **Clock** | Large time, date, week strip, day of year and ISO week |
-| 8 | **Chat** | Voice assistant (see below) |
-| 9 | **Sound** | Sound on/off, volume (tap a segment to test it) |
-| 10 | **Screen** | Brightness (5 levels), accent colour (Cyan / Amber / Green / Pink) and **Language** (English / Espanol) |
-| 11 | **Timers** | Pomodoro focus (15/25/35/45), short break (5/10/15), long break (15/20/30, auto every 4th) and anti-sedentary reminder (OFF/15/30/45/60 min) |
+| 4 | **Plants** | Pixel-art catalog. Live scout mode: light every ~0.4 s and temperature/humidity (DHT11) every 2 s with ideal-range bars turning green + advice (`Move nearer the window`...). Tap above or the sensor for the official ~8 s averaged measurement with a 0-100 score |
+| 5 | **Vital** | Day director: SIT / STAND / RELAX with 3 one-tap presets (Gentle no-desk 45/3, Classic Cornell 20/8/2, Focus 50/10), big countdown, Buckley 2h day bar, next-up line. Opens the Exercise coach on breaks |
+| 6 | **Calm** | SOS meditation/relaxation (see below): **Breathe 60 s** (cyclic sighing), **Ride the urge 3 min** (watch craving as a wave) and **Ground 5-4-3-2-1**. Today/total counter on the menu, no streaks |
+| 7 | **Weather** | Open-Meteo (no key): icon, temperature, feels like, humidity, wind, max/min, rain chance, sunrise/sunset. Every 15 min; tap = refresh |
+| 8 | **Clock** | Large time, date, week strip, day of year and ISO week |
+| 9 | **Chat** | Voice assistant (see below) |
+| 10 | **Sound** | Sound on/off, volume (tap a segment to test it) |
+| 11 | **Screen** | Brightness (5 levels), accent colour (Cyan / Amber / Green / Pink) and **Language** (English / Espanol) |
+| 12 | **Timers** | Pomodoro focus (15/25/35/45), short break (5/10/15), long break (15/20/30, auto every 4th) and anti-sedentary reminder (OFF/15/30/45/60 min) |
 
 All settings are stored in flash (NVS) and survive reboots.
 
@@ -98,7 +102,27 @@ With `pc-agent` running on your PC you can also ask for actions:
 | "tell the session to review X" | `PROMPT:<text>` | Sends a prompt to an OpenCode session |
 | "summarize the session" | `RESUME` | Reads the latest OpenCode messages |
 | "go to pomodoro" | `PAGE:` | Changes the device page |
+| "I need to calm down / craving" | `PAGE:Calm` | Opens the Calm window from the start (SOS menu) |
 | "starting the report" | `FOCUS:<mode>:<task>` | Binds the task to pomodoro (classifies work/writing/leisure), starts focus and speaks one tailored tip |
+
+## Calm window (Calm page + PC)
+
+For moments of tension, stress or urge/craving. SOS access: long-press on **Face**,
+say "I need to calm down", or open `Calm` on the PC (`python calm_window.py`).
+
+| Mode | What it does | Basis |
+|---|---|---|
+| **Breathe 60 s** | Guided cyclic sighing: double inhale + long exhale, 6 cycles | Balban et al. 2023 (*Cell Reports Medicine*): 5 min/day improves mood and lowers arousal more than mindfulness |
+| **Ride the urge 3 min** | Rate 0-10, watch the "wave" without acting, rate again | Bowen & Marlatt 2009: urge surfing does not remove craving on the spot, but changes the response (less use at 7 days) |
+| **Ground 5-4-3-2-1** | See 5 → touch 4 → hear 3 → feel 2 → breathe 1 | Clinical-consensus sensory grounding for panic (limited direct evidence) |
+
+First run shows a notice (not therapy) accepted with OK. Only counters are stored
+(today/total, last rating) in flash; nothing sensitive leaves the device. On the PC,
+`calm_window.py` adds big-screen breathing, a **DND 5 min** button (mutes notifications
+and restores them alone) and remote Calm opening on KT1.
+
+> ⚠️ **This is not medical or addiction treatment.** If the urge is strong or distress
+> persists, seek professional help.
 
 ## Health notes
 

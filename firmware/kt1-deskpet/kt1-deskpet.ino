@@ -8,7 +8,7 @@
  *  PC     : pc-agent (Python) -> POST http://kt1.local/pet  ·  bridge.py (voice/OpenCode)
  *
  *  Pages (swipe left/right):
- *    FACE · EXERCISE · POMODORO · PLANTS · VITAL · WEATHER · CLOCK · CHAT · SOUND · SCREEN · TIMERS
+ *    FACE · EXERCISE · POMODORO · PLANTS · VITAL · CALM · WEATHER · CLOCK · CHAT · SOUND · SCREEN · TIMERS
  *
  *  "Active focus" cycle (Cornell Ergonomics 20-8-2):
  *    20 min sitting -> 8 min standing -> 2 min active break with dumbbells.
@@ -166,9 +166,11 @@
 #define RETRY_MS         (60UL * 1000UL)
 
 // ---- "Active focus" cycle (see README §Health: Cornell 20-8-2, Buckley 2015, WHO/NHS) ----
-#define SIT_MIN            20     // sitting work
-#define STAND_MIN          8      // standing work
-#define MOVE_MIN           2      // active break (1 set)
+// Mutable: Vital presets update them so gPhase/face status bar stay in sync
+// with the Vital director (Vital is the only timer, Exercise is the trainer).
+int SIT_MIN            = 20;    // sitting work
+int STAND_MIN          = 8;     // standing work
+int MOVE_MIN           = 2;     // active break (1 set)
 #define LONG_EVERY         4      // every N cycles, long break (~2 h)
 #define LONGBREAK_MIN           10     // max length of the long break
 #define CIRCUIT_ROUNDS     1      // long-break circuit rounds (1-2)
@@ -215,7 +217,7 @@ static_assert(SCREEN_ROTATION == 1 || SCREEN_ROTATION == 3, "Use SCREEN_ROTATION
 // ===========================================================================
 //  TYPES (at the very top: the Arduino IDE generates prototypes that use them)
 // ===========================================================================
-enum Page    { PAGE_FACE, PAGE_EXERCISE, PAGE_POMO, PAGE_PLANTS, PAGE_VITAL, PAGE_WEATHER,
+enum Page    { PAGE_FACE, PAGE_EXERCISE, PAGE_POMO, PAGE_PLANTS, PAGE_VITAL, PAGE_CALM, PAGE_WEATHER,
                PAGE_CLOCK, PAGE_CHAT,
                PAGE_SET_SOUND, PAGE_SET_SCREEN, PAGE_SET_TIME, PAGE_COUNT };
 enum Mood    { M_NEUTRAL, M_HAPPY, M_LOVE, M_SURPRISED, M_ANGRY, M_SAD, M_SLEEPY, M_DIZZY, M_SPORT, M_THINK, M_COUNT };
@@ -363,8 +365,8 @@ const int      BRIGHT_COUNT    = 5;
 
 // UI tables, one row per language (lang.h): TABLE[gLang][i]
 const char* const PAGE_NAMES_L[LANG_COUNT][PAGE_COUNT] = {
-  { "Face", "Exercise", "Pomodoro", "Plants", "Vital", "Weather", "Clock", "Chat", "Sound", "Screen", "Timers" },
-  { "Cara", "Ejercicio", "Pomodoro", "Plantas", "Vital", "Tiempo", "Reloj", "Chat", "Sonido", "Pantalla", "Tiempos" },
+  { "Face", "Exercise", "Pomodoro", "Plants", "Vital", "Calm", "Weather", "Clock", "Chat", "Sound", "Screen", "Timers" },
+  { "Cara", "Ejercicio", "Pomodoro", "Plantas", "Vital", "Calma", "Tiempo", "Reloj", "Chat", "Sonido", "Pantalla", "Tiempos" },
 };
 const char* const DAYS_L[LANG_COUNT][7] = {
   { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" },
@@ -406,6 +408,7 @@ int      gInk = 0, gBright = 3, gVolume = 70;
 bool     gSoundOn = true;
 bool     gDirty = true;
 uint32_t lastInteraction = 0;
+volatile bool reqCalmPage = false;   // /pet {"calm":true} -> open the SOS page
 char     toastText[40] = "";
 uint32_t toastUntil = 0;
 TouchState ts;
@@ -421,6 +424,7 @@ int      animDir = 1;
 Phase    gPhase = PH_OFF;
 Posture  gPosture = POS_SIT;
 bool     gPaused = false;
+bool     gVitalDrives = false;   // true: Vital Dia owns timing, cycleTick stays out
 uint32_t phaseStart = 0, pauseStart = 0, deferSince = 0, sitSince = 0;
 int      cycleNo = 0;
 uint32_t autoStartDay = 0;
@@ -471,6 +475,17 @@ void plantTap(int x, int y);
 void vitalTick();
 void vitalTap(int x, int y);
 void vitalInit();
+void calmInit();
+void calmTick();
+void calmTap(int x, int y);
+void calmOpen();
+bool calmRunning();
+void calmSensorTap();
+void calmSensorHold();
+void vitalStart();
+void vitalStop();
+void vitalTogglePause();
+void vitalSetPreset(int i);
 void confirmPosture(Posture p, bool fromDesk);
 void coachOpen(bool circuit);
 void coachClose();
@@ -560,6 +575,7 @@ int isoWeek(const struct tm& t) {
 #include "pomodoro.h"
 #include "plants.h"
 #include "vital.h"
+#include "calm.h"     // SOS breathing / urge surfing / grounding
 #include "remote.h"   // v3: bridge.py client (used by chat.h and pages.h)
 #include "chat.h"     // v3: Gemini voice + TTS (uses soundAudioSuspend/Resume)
 #include "pages.h"
@@ -713,6 +729,7 @@ void handleGesture(Gesture g) {
       else if (gPage == PAGE_POMO)   pomoTap(ts.x, ts.y);
       else if (gPage == PAGE_PLANTS) plantTap(ts.x, ts.y);
       else if (gPage == PAGE_VITAL) vitalTap(ts.x, ts.y);
+      else if (gPage == PAGE_CALM) calmTap(ts.x, ts.y);
       else if (gPage == PAGE_SET_SOUND) setSoundTap(ts.x, ts.y);
       else if (gPage == PAGE_SET_SCREEN) setScreenTap(ts.x, ts.y);
       else if (gPage == PAGE_SET_TIME) setTimeTap(ts.x, ts.y);
@@ -723,7 +740,9 @@ void handleGesture(Gesture g) {
     } break;
     case G_LONG:
       if (gPage == PAGE_CHAT) { chatReplay(); break; }   // hold = listen again
-      if (gPage == PAGE_EXERCISE) { cycleStop(); toast(TR("Exercise off", "Ejercicio apagado"), 1500); break; }
+      if (gPage == PAGE_CALM) { calmSensorHold(); break; }   // hold = end session
+      if (gPage == PAGE_FACE) { calmOpen(); break; }     // hold on Face = SOS calm
+      if (gPage == PAGE_EXERCISE) { cycleStop(); toast(TR("Vital off", "Vital apagado"), 1500); break; }
       if (gPage == PAGE_VITAL) { vitalTogglePause(); break; }
       changeInk();
       break;
@@ -738,6 +757,7 @@ void handleGesture(Gesture g) {
 // ===========================================================================
 void onSensorTap() {
   Serial.println("[PET] sensor tap");
+  if (gPage == PAGE_CALM) { calmSensorTap(); return; }   // calm: tap = pause / next
   if (gPage == PAGE_CHAT) { chatReplay(); return; }   // v3: tap = listen again (with reply)
   if (coach.active) {
     switch (coach.st) {
@@ -760,6 +780,7 @@ void onSensorTap() {
     plantState = PL_IDLE; toast(TR("Measuring off", "Medicion off"), 1000); sound(SND_TICK); gDirty = true;
     return;
   }
+  if (gPage == PAGE_PLANTS && plantState == PL_IDLE) { plantStart(); return; }  // hands-free measure
   setMoodFor(M_HAPPY, MANUAL_MOOD_MS);
   dizzyUntil = 0;
   squash = 1.0f;
@@ -770,6 +791,7 @@ void onSensorTap() {
 
 bool onSensorHold() {
   Serial.println("[PET] sensor hold");
+  if (gPage == PAGE_CALM) { calmSensorHold(); return false; }   // calm: hold = end
   if (gPage == PAGE_CHAT) { chatTurn(); return false; }  // v3: push-to-talk voice
   if (coach.active) {
     toast(coach.anyDone ? TR("Break done", "Pausa terminada") : TR("Break skipped", "Pausa saltada"), 1000);
@@ -811,6 +833,7 @@ void render() {
       case PAGE_POMO:    drawPomoPage();    break;
       case PAGE_PLANTS:  drawPlantPage();   break;
       case PAGE_VITAL:   drawVitalPage();   break;
+      case PAGE_CALM:    drawCalmPage();    break;
       case PAGE_WEATHER: drawWeatherPage(); break;
       case PAGE_CLOCK:   drawClockDatePage(); break;
       case PAGE_CHAT:    drawChatPage(); break;
@@ -824,7 +847,7 @@ void render() {
       sprPrev.pushToSprite(&spr, off, 0);
     }
     if (gPage == PAGE_FACE && !coach.active) drawVitalBanner();   // vital turn: what's next + countdown
-    drawPageDots();
+    if (gPage != PAGE_CHAT) drawPageDots();   // WOW cinema: chat is full-bleed, no dots
   }
   drawToast();
 #if TOUCH_DEBUG
@@ -866,8 +889,8 @@ void twoTick() {
   if (millis() - lastTw < 60) return;
   lastTw = millis();
   bool alert = nudge.active || vitalAlertActive() || buildFail() || gNet == NET_FAIL;
-  bool active = coach.active || pomoRunning() || gPhase != PH_OFF
-             || buildBusy() || gNet != NET_OK;
+  bool active = coach.active || pomoRunning() || calmRunning() || gPhase != PH_OFF
+             || buildBusy() || gNet != NET_OK || chatState != CHAT_IDLE;
   bool on = alert ? ((millis() / 250) & 1) : active;
   static int lastTwo = -1;
   if (on != (bool)lastTwo) {
@@ -885,11 +908,15 @@ void updateLed() {
 #if LED_ENABLED
   // Onboard LED is inside the case: diagnostics only. User-facing states live
   // on screen (aura, banners) and on the external module (twoTick).
+  // WOW v4: mirror chat turn state (red REC / amber blink THINK / green TALK).
   static int last = -1;
   bool blink = (millis() / 500) & 1;
   int st;
   if (buildFail())               st = blink ? 2 : 0;    // blinking red = build broken
   else if (buildBusy())          st = blink ? 40 : 41;  // blinking amber = AI working
+  else if (gPage == PAGE_CHAT && chatState == CHAT_REC) st = 2;
+  else if (gPage == PAGE_CHAT && chatState == CHAT_THINK) st = blink ? 40 : 41;
+  else if (gPage == PAGE_CHAT && chatState == CHAT_TALK) st = 30;
   else if (gNet == NET_CONNECTING) st = blink ? 10 : 11;  // blinking blue
   else if (gNet == NET_FAIL)     st = 2;                // red
   else                           st = 0;                // off
@@ -897,6 +924,7 @@ void updateLed() {
   last = st;
   switch (st) {
     case 40: led.setLedColorData(0, 30, 15, 0); break;
+    case 30: led.setLedColorData(0, 0, 40, 0); break;
     case 10: led.setLedColorData(0, 0, 0, 40);  break;
     case 2:  led.setLedColorData(0, 40, 0, 0);  break;
     default: led.setLedColorData(0, 0, 0, 0);   break;
@@ -1034,6 +1062,7 @@ void setup() {
 #endif
   pomoInit();
   vitalInit();
+  calmInit();
   chatInit();   // v3: voice buffer in PSRAM
 
   setenv("TZ", TZ_INFO, 1); tzset();
@@ -1075,6 +1104,7 @@ void loop() {
 
   Gesture g = pollTouch();
   if (g != G_NONE) handleGesture(g);
+  if (reqCalmPage) { reqCalmPage = false; calmOpen(); }
 #if PET_ENABLED
   petTick();
 #endif
@@ -1090,6 +1120,7 @@ void loop() {
     pomoTick();
     plantTick();
     vitalTick();
+    calmTick();
     sedTick();
     statsTick();
   }
@@ -1098,7 +1129,7 @@ void loop() {
   // Daily OTA against the bridge (pc-agent/firmware). Only with Wi-Fi and with
   // nothing active (does not interrupt exercise/pomo/vital/coach).
   static uint32_t nextOta = 30000;
-  if (gNet == NET_OK && !coach.active && !pomoRunning() && vitalPhase == VIT_OFF
+  if (gNet == NET_OK && !coach.active && !pomoRunning() && !calmRunning() && vitalPhase == VIT_OFF
       && (int32_t)(now - nextOta) >= 0) {
     nextOta = now + 24UL * 3600UL * 1000UL;
     otaCheck();
@@ -1107,7 +1138,7 @@ void loop() {
   // v2: timers (exercise, pomodoro, vital) keep running when you change page.
   // No auto-return during pomodoro or a posture nudge (the vital turn
   // alerts on the FACE with a pill + LED, so you can navigate freely).
-  if (!coach.active && !pomoRunning() && !nudge.active && gPage != PAGE_FACE && now - lastInteraction > AUTO_RETURN_MS) {
+  if (!coach.active && !pomoRunning() && !calmRunning() && !nudge.active && gPage != PAGE_FACE && now - lastInteraction > AUTO_RETURN_MS) {
     setPage(PAGE_FACE, -1, false);   // back home: slides in from the left, no toast
   }
   // "Dizzy" NO longer changes page: it only shows spiral eyes when already on the face.
@@ -1115,7 +1146,7 @@ void loop() {
   updateBacklight();
   updateLed();
 
-  bool animated = coach.active || animActive || vitalPhase != VIT_OFF || gPage == PAGE_FACE || gPage == PAGE_VITAL || gPage == PAGE_CHAT || ts.down;
+  bool animated = coach.active || animActive || vitalPhase != VIT_OFF || calmRunning() || gPage == PAGE_FACE || gPage == PAGE_VITAL || gPage == PAGE_CALM || gPage == PAGE_CHAT || ts.down;
   uint32_t frameMs = animated ? 33 : 200;
   if (gDirty || now - lastFrame >= frameMs) {
     lastFrame = now;
