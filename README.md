@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![ESP32-S3](https://img.shields.io/badge/ESP32--S3-2.8%22%20touch-blue.svg)](docs/en/hardware.md)
 [![PlatformIO](https://img.shields.io/badge/PlatformIO-ready-orange.svg)](platformio.ini)
-[![Build](https://github.com/danigtalh/kt1-deskpet/actions/workflows/build.yml/badge.svg)](https://github.com/danigtalh/kt1-deskpet/actions/workflows/build.yml)
+[![Build](https://github.com/Amloii/KT1-deskpet/actions/workflows/build.yml/badge.svg)](https://github.com/Amloii/KT1-deskpet/actions/workflows/build.yml)
 [![Docs EN/ES](https://img.shields.io/badge/docs-EN%20%7C%20ES-lightgrey.svg)](docs/en/installation.md)
 
 **A desk companion with expressive eyes that nags you to stand up and answers when you talk to it.**

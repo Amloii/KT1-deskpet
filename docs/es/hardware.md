@@ -31,6 +31,23 @@ Software/servicios (todos opcionales salvo el primero):
 > ojos se mueven al azar sin la IMU, la página *Plantas* muestra «sin lectura» sin
 > DHT11/LDR, etc.
 
+### Dónde comprar (sin enlaces, para evitar tiendas muertas)
+
+- **FNK0104B:** busca «Freenove ESP32-S3 Display FNK0104B» en la tienda de Freenove o en tu tienda habitual de electrónica. Verifica que sea la versión de 2,8" ILI9341 + FT6336U + ES8311.
+- **GY-521 / TTP223 / DHT11 / KY-018:** módulos genéricos, cualquier vendedor sirve. Compra versiones compatibles con 3,3 V y cables Dupont cortos (hembra-hembra / hembra-macho, ~14 uds.).
+
+### Coste total estimado (oct. 2026, varía por región)
+
+| Configuración | Qué incluye | Aprox. |
+|---|---|---:|
+| Mínima (funciona) | FNK0104B + cable USB-C de datos + cargador 5 V ≥ 1 A | ~30–45 € |
+| Con sensores (recomendada) | Mínima + GY-521 + TTP223 + DHT11 + KY-018 + ~14 cables Dupont | ~40–60 € |
+| Confort | Con sensores + carcasa impresa en 3D + mancuernas (suelen estar ya en casa) | ~45–70 € + mancuernas |
+
+> Referencia: la familia FNK0104 ronda los ~22 $ USD en la tienda de Freenove; en la UE
+> suele estar en 25–40 € con envío/IVA. Si ya tienes cable, cargador y cables,
+> resta ~5–10 €. El software y los servicios son gratis (Arduino IDE, nivel gratuito de Gemini, OpenCode).
+
 ## 2. Pines que usa la placa (internos, ya conectados)
 
 | Función | GPIO | Notas |

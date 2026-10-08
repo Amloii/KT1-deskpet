@@ -1,0 +1,25 @@
+---
+name: Good first issue
+description: Small, well-scoped starter task
+labels: [good first issue]
+body:
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      placeholder: "pc-agent / firmware / docs / hardware"
+  - type: textarea
+    id: task
+    attributes:
+      label: Task / Tarea
+      placeholder: What to do, which files, acceptance criteria, how to test
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: No new sensors or libraries needed
+        - label: I can update docs EN+ES if needed
+---

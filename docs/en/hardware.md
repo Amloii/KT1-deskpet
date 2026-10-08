@@ -35,7 +35,19 @@ Software/services (all optional except the first):
 
 - **FNK0104B:** search "Freenove ESP32-S3 Display FNK0104B" on the Freenove store or your usual electronics shop. Verify it is the 2.8" ILI9341 + FT6336U + ES8311 version (board support: [Freenove_ESP32_S3_Display](https://github.com/Freenove/Freenove_ESP32_S3_Display)).
 - **GY-521 / TTP223 / DHT11 / KY-018:** generic modules, any vendor works. Buy the 3.3 V-compatible versions and short Dupont wires (female-female / female-male, ~14 pcs).
-- Typical prices (Oct 2026, varies by region): board ~25–40 €, sensors ~1–3 € each.
+- Typical module prices (Oct 2026, varies by region): board ~25–40 €, sensors ~1–3 € each.
+
+### Estimated total cost (Oct 2026, varies by region)
+
+| Configuration | What is included | Approx. |
+|---|---|---:|
+| Minimal (works) | FNK0104B + USB-C data cable + 5 V ≥ 1 A charger | ~30–45 € |
+| Full sensors (recommended) | Minimal + GY-521 + TTP223 + DHT11 + KY-018 + ~14 Dupont wires | ~40–60 € |
+| Comfort | Full sensors + 3D-printed case + dumbbells (often already at home) | ~45–70 € + dumbbells |
+
+> Reference: the FNK0104 family lists at ~$22 USD on the Freenove store; in the EU it is
+> typically 25–40 € with shipping/VAT. If you already own the cable, charger and wires,
+> subtract ~5–10 €. Software and services are free (Arduino IDE, Gemini free tier, OpenCode).
 
 ## 2. Pins used by the board (internal, already wired)
 

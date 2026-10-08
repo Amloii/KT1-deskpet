@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![ESP32-S3](https://img.shields.io/badge/ESP32--S3-2.8%22%20t%C3%A1ctil-blue.svg)](docs/es/hardware.md)
 [![PlatformIO](https://img.shields.io/badge/PlatformIO-ready-orange.svg)](platformio.ini)
-[![Build](https://github.com/danigtalh/kt1-deskpet/actions/workflows/build.yml/badge.svg)](https://github.com/danigtalh/kt1-deskpet/actions/workflows/build.yml)
+[![Build](https://github.com/Amloii/KT1-deskpet/actions/workflows/build.yml/badge.svg)](https://github.com/Amloii/KT1-deskpet/actions/workflows/build.yml)
 [![Docs EN/ES](https://img.shields.io/badge/docs-EN%20%7C%20ES-lightgrey.svg)](docs/es/installation.md)
 
 **Un compañero de escritorio con ojos expresivos que te insiste en que te levantes y te contesta cuando le hablas.**
