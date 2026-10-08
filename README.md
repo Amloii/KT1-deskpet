@@ -11,6 +11,11 @@
 **A desk companion with expressive eyes that nags you to stand up and answers when you talk to it.**
 ESP32-S3 · 2.8" touch screen · voice · sensors · Windows companion
 
+<p align="center">
+  <img src="images/deskbot.jpg" alt="KT1 assembled in its case, on the desk" width="600">
+</p>
+<p align="center"><em>KT1 assembled in its cardboard case, on the desk next to the keyboard.</em></p>
+
 ![Architecture](docs/media/architecture.svg)
 
 > 🧪 No hardware yet? Try the logic in your browser: import `diagram.json` into [Wokwi](https://wokwi.com/new/esp32-s3-devkitc-1) (generic ESP32-S3 + ILI9341 + MPU6050 + DHT + button; the real FNK0104B wiring is in [hardware.md](docs/en/hardware.md#3-wiring-map)).
@@ -31,17 +36,41 @@ microphone is live it stays quiet until the call is over.
 
 ## Demo
 
+<p align="center">
+  <img src="images/demo_overview.gif" alt="KT1 on the desk, face and pages" width="48%">
+  <img src="images/demo_chatbot.gif" alt="KT1 voice chat answering" width="48%">
+</p>
+<p align="center"><em>Left: KT1 on the desk — face, pages and navigation. Right: voice chat — ask, thinking, spoken answer.<br>Full-quality clips: <a href="images/video_desktop.mp4">video_desktop.mp4</a> · <a href="images/chatbot_desktop.mp4">chatbot_desktop.mp4</a></em></p>
+
+### Screens
+
+| Face / Clock | Vital day plan | Exercise break |
+|---|---|---|
+| <img src="images/clock.jpg" alt="Clock screen" width="250"> | <img src="images/vital.jpg" alt="Vital day plan screen" width="250"> | <img src="images/exercise.jpg" alt="Exercise screen" width="250"> |
+| Clock with date, weather mini-icon and Cornell cycle state | Choose your day: Gentle 45/3, Classic Cornell 20/8/2, Focus 50/10 | Guided break: Goblet squat, One-arm row, Overhead press |
+
+| Pomodoro setup | Pomodoro focus | Calm SOS |
+|---|---|---|
+| <img src="images/pomodoro.jpg" alt="Pomodoro setup screen" width="250"> | <img src="images/pomodoro_active.jpg" alt="Pomodoro focus countdown" width="250"> | <img src="images/calm.jpg" alt="Calm screen" width="250"> |
+| Work / Writing / Leisure, focus + rest length | FOCUS Work 1/4 countdown with Pause / End | 60 s breathing, 3 min urge surfing, 5-4-3-2-1 grounding |
+
+| Plants | Weather | Screen settings |
+|---|---|---|
+| <img src="images/plants.jpg" alt="Plants screen" width="250"> | <img src="images/weather.jpg" alt="Weather screen" width="250"> | <img src="images/options.jpg" alt="Screen settings" width="250"> |
+| Light / temp / humidity vs Pothos needs, "Move nearer the window" | Open-Meteo: now, feels-like, wind, rain, sunrise/sunset | Brightness, accent color, English / Español |
+
 <details>
-<summary>🎬 Six clips, recordings pending</summary>
+<summary>🎬 Extra clips pending</summary>
 
 <!--
-  VIDEO SLOTS: drag each .mp4 into the GitHub web editor on this line (GitHub turns it
-  into a https://github.com/user-attachments/assets/... link and plays it inline),
-  or see docs/media/README.md. Replace the whole quote block of each slot.
+  VIDEO SLOTS: to play inline on GitHub, drag each .mp4 into the GitHub web editor
+  on this line (GitHub turns it into a https://github.com/user-attachments/assets/...
+  link), or see docs/media/README.md. Local .mp4 files in images/ are linked as fallback.
 -->
 
-### 1. Overview
-> 🎬 **Video pending**: *KT1 on the desk: face, pages and navigation.*
+### 1. Overview — done
+![Overview](images/demo_overview.gif)
+Full quality: [video_desktop.mp4](images/video_desktop.mp4)
 
 ### 2. Moods, tilt and petting
 > 🎬 **Video pending**: *moods, eyes following the tilt (IMU), dizzy on shake, petting with the touch sensor.*
@@ -52,11 +81,12 @@ microphone is live it stays quiet until the call is over.
 ### 4. Pomodoro and plants
 > 🎬 **Video pending**: *pomodoro mode and a plant measurement.*
 
-### 5. Voice assistant and PC control
-> 🎬 **Video pending**: *voice question, spoken answer and a PC command (volume, open app…).*
+### 5. Voice assistant and PC control — done
+![Voice chat](images/demo_chatbot.gif)
+Full quality: [chatbot_desktop.mp4](images/chatbot_desktop.mp4)
 
 ### 6. Language switch
-> 🎬 **Video pending**: *changing English ↔ Español on the Screen page.*
+> 🎬 **Video pending**: *changing English ↔ Español on the Screen page (see photo above).*
 
 </details>
 
@@ -98,6 +128,11 @@ Full list, board pinout and safety notes: **[docs/en/hardware.md](docs/en/hardwa
 ## Wiring
 
 ![Wiring overview](docs/media/wiring.svg)
+
+<p align="center">
+  <img src="images/montaje.jpg" alt="Real wiring of KT1 modules on the desk" width="600">
+</p>
+<p align="center"><em>Real build: ESP32-S3 display with GY-521, TTP223, DHT11 and KY-018 wired with Dupont cables.</em></p>
 
 | Module | Module pin → Board |
 |---|---|

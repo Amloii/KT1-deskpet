@@ -11,6 +11,11 @@
 **Un compañero de escritorio con ojos expresivos que te insiste en que te levantes y te contesta cuando le hablas.**
 ESP32-S3 · pantalla táctil de 2,8" · voz · sensores · compañero para Windows
 
+<p align="center">
+  <img src="images/deskbot.jpg" alt="KT1 montado en su carcasa, sobre el escritorio" width="600">
+</p>
+<p align="center"><em>KT1 montado en su carcasa de cartón, sobre el escritorio junto al teclado.</em></p>
+
 ![Arquitectura](docs/media/architecture.svg)
 
 > 🧪 ¿Sin hardware todavía? Prueba la lógica en tu navegador: importa `diagram.json` en [Wokwi](https://wokwi.com/new/esp32-s3-devkitc-1) (ESP32-S3 genérico + ILI9341 + MPU6050 + DHT + botón; el cableado real del FNK0104B está en [hardware.md](docs/es/hardware.md#3-mapa-de-conexiones)).
@@ -31,17 +36,42 @@ el micro abierto se calla hasta que termina la llamada.
 
 ## Demo
 
+<p align="center">
+  <img src="images/demo_overview.gif" alt="KT1 sobre el escritorio, cara y páginas" width="48%">
+  <img src="images/demo_chatbot.gif" alt="KT1 en chat de voz respondiendo" width="48%">
+</p>
+<p align="center"><em>Izquierda: KT1 en el escritorio — cara, páginas y navegación. Derecha: chat de voz — pregunta, pensando, respuesta hablada.<br>Clips a calidad completa: <a href="images/video_desktop.mp4">video_desktop.mp4</a> · <a href="images/chatbot_desktop.mp4">chatbot_desktop.mp4</a></em></p>
+
+### Pantallas
+
+| Cara / Reloj | Plan vital del día | Pausa de ejercicio |
+|---|---|---|
+| <img src="images/clock.jpg" alt="Pantalla de reloj" width="250"> | <img src="images/vital.jpg" alt="Pantalla de plan vital" width="250"> | <img src="images/exercise.jpg" alt="Pantalla de ejercicio" width="250"> |
+| Reloj con fecha, mini-icono del tiempo y estado del ciclo Cornell | Elige tu día: Suave 45/3, Cornell clásico 20/8/2, Enfoque 50/10 | Pausa guiada: sentadilla goblet, remo a una mano, press militar |
+
+| Pomodoro ajuste | Pomodoro enfoque | Calma SOS |
+|---|---|---|
+| <img src="images/pomodoro.jpg" alt="Ajuste de pomodoro" width="250"> | <img src="images/pomodoro_active.jpg" alt="Cuenta atrás de enfoque" width="250"> | <img src="images/calm.jpg" alt="Pantalla de calma" width="250"> |
+| Trabajo / Escritura / Ocio, duración de enfoque y descanso | Cuenta atrás FOCUS Trabajo 1/4 con Pausa / Fin | Respiración 60 s, surfear el impulso 3 min, anclaje 5-4-3-2-1 |
+
+| Plantas | Tiempo | Ajustes de pantalla |
+|---|---|---|
+| <img src="images/plants.jpg" alt="Pantalla de plantas" width="250"> | <img src="images/weather.jpg" alt="Pantalla del tiempo" width="250"> | <img src="images/options.jpg" alt="Ajustes de pantalla" width="250"> |
+| Luz / temp / humedad frente a lo que necesita el Poto, "Move nearer the window" | Open-Meteo: actual, sensación, viento, lluvia, sol | Brillo, color de acento, English / Español |
+
 <details>
-<summary>🎬 Seis clips, grabaciones pendientes</summary>
+<summary>🎬 Clips extra pendientes</summary>
 
 <!--
-  HUECOS PARA VÍDEOS: arrastra cada .mp4 al editor web de GitHub en esta línea (GitHub lo
-  convierte en un enlace https://github.com/user-attachments/assets/... y lo reproduce
-  integrado), o consulta docs/media/README.md. Sustituye el bloque de cita completo de cada hueco.
+  HUECOS PARA VÍDEOS: para reproducirlos integrados en GitHub, arrastra cada .mp4 al
+  editor web de GitHub en esta línea (GitHub lo convierte en un enlace
+  https://github.com/user-attachments/assets/...), o consulta docs/media/README.md.
+  Los .mp4 locales de images/ se enlazan como alternativa.
 -->
 
-### 1. Vista general
-> 🎬 **Vídeo pendiente**: *KT1 en el escritorio: cara, páginas y navegación.*
+### 1. Vista general — listo
+![Vista general](images/demo_overview.gif)
+Calidad completa: [video_desktop.mp4](images/video_desktop.mp4)
 
 ### 2. Estados de ánimo, inclinación y caricias
 > 🎬 **Vídeo pendiente**: *estados de ánimo, ojos que siguen la inclinación (IMU), mareo al agitarlo, caricias con el sensor táctil.*
@@ -52,11 +82,12 @@ el micro abierto se calla hasta que termina la llamada.
 ### 4. Pomodoro y plantas
 > 🎬 **Vídeo pendiente**: *modo pomodoro y una medición de planta.*
 
-### 5. Asistente de voz y control del PC
-> 🎬 **Vídeo pendiente**: *pregunta por voz, respuesta hablada y un comando al PC (volumen, abrir app…).*
+### 5. Asistente de voz y control del PC — listo
+![Chat de voz](images/demo_chatbot.gif)
+Calidad completa: [chatbot_desktop.mp4](images/chatbot_desktop.mp4)
 
 ### 6. Cambio de idioma
-> 🎬 **Vídeo pendiente**: *cambio English ↔ Español en la página Pantalla.*
+> 🎬 **Vídeo pendiente**: *cambio English ↔ Español en la página Pantalla (ver foto de arriba).*
 
 </details>
 
@@ -98,6 +129,11 @@ Lista completa, pines de la placa y notas de seguridad: **[docs/es/hardware.md](
 ## Conexiones
 
 ![Conexiones](docs/media/wiring.svg)
+
+<p align="center">
+  <img src="images/montaje.jpg" alt="Conexiones reales de los módulos de KT1 sobre la mesa" width="600">
+</p>
+<p align="center"><em>Montaje real: pantalla ESP32-S3 con GY-521, TTP223, DHT11 y KY-018 conectados con cables Dupont.</em></p>
 
 | Módulo | Pin del módulo → Placa |
 |---|---|
