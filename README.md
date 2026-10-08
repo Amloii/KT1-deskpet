@@ -12,9 +12,9 @@
 ESP32-S3 · 2.8" touch screen · voice · sensors · Windows companion
 
 <p align="center">
-  <img src="docs/media/deskbot.jpg" alt="KT1 assembled in its case, on the desk" width="600">
+  <img src="docs/media/demo_overview.gif" alt="KT1 live on the desk — demo video" width="480">
 </p>
-<p align="center"><em>KT1 assembled in its cardboard case, on the desk next to the keyboard.</em></p>
+<p align="center"><em>KT1 live on the desk — face, pages and navigation.</em></p>
 
 ![Architecture](docs/media/architecture.svg)
 
@@ -37,27 +37,66 @@ microphone is live it stays quiet until the call is over.
 ## Demo
 
 <p align="center">
-  <img src="docs/media/demo_overview.gif" alt="KT1 on the desk, face and pages" width="48%">
+  <img src="docs/media/deskbot.jpg" alt="KT1 in its hand-painted cardboard case" width="48%">
   <img src="docs/media/demo_chatbot.gif" alt="KT1 voice chat answering" width="48%">
 </p>
-<p align="center"><em>Left: KT1 on the desk — face, pages and navigation. Right: voice chat — ask, thinking, spoken answer.<br>Full-quality clips: <a href="docs/media/video_desktop.mp4">video_desktop.mp4</a> · <a href="docs/media/chatbot_desktop.mp4">chatbot_desktop.mp4</a></em></p>
+<p align="center"><em>Left: the one and only KT1 — yes, the case is a painted cardboard box: no 3D printer here, just personality (and a lot of blue paint). Right: voice chat — ask, thinking, spoken answer.</em></p>
 
 ### Screens
 
-| Face / Clock | Vital day plan | Exercise break |
-|---|---|---|
-| <img src="docs/media/clock.jpg" alt="Clock screen" width="250"> | <img src="docs/media/vital.jpg" alt="Vital day plan screen" width="250"> | <img src="docs/media/exercise.jpg" alt="Exercise screen" width="250"> |
-| Clock with date, weather mini-icon and Cornell cycle state | Choose your day: Gentle 45/3, Classic Cornell 20/8/2, Focus 50/10 | Guided break: Goblet squat, One-arm row, Overhead press |
-
-| Pomodoro setup | Pomodoro focus | Calm SOS |
-|---|---|---|
-| <img src="docs/media/pomodoro.jpg" alt="Pomodoro setup screen" width="250"> | <img src="docs/media/pomodoro_active.jpg" alt="Pomodoro focus countdown" width="250"> | <img src="docs/media/calm.jpg" alt="Calm screen" width="250"> |
-| Work / Writing / Leisure, focus + rest length | FOCUS Work 1/4 countdown with Pause / End | 60 s breathing, 3 min urge surfing, 5-4-3-2-1 grounding |
-
-| Plants | Weather | Screen settings |
-|---|---|---|
-| <img src="docs/media/plants.jpg" alt="Plants screen" width="250"> | <img src="docs/media/weather.jpg" alt="Weather screen" width="250"> | <img src="docs/media/options.jpg" alt="Screen settings" width="250"> |
-| Light / temp / humidity vs Pothos needs, "Move nearer the window" | Open-Meteo: now, feels-like, wind, rain, sunrise/sunset | Brightness, accent color, English / Español |
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/media/clock.jpg" alt="Clock screen" width="250"><br>
+      <b>Face / Clock</b><br>
+      Clock with date, weather mini-icon and Cornell cycle state
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/vital.jpg" alt="Vital day plan screen" width="250"><br>
+      <b>Vital day plan</b><br>
+      Choose your day: Gentle 45/3, Classic Cornell 20/8/2, Focus 50/10
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/exercise.jpg" alt="Exercise screen" width="250"><br>
+      <b>Exercise break</b><br>
+      Guided break: Goblet squat, One-arm row, Overhead press
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/media/pomodoro.jpg" alt="Pomodoro setup screen" width="250"><br>
+      <b>Pomodoro setup</b><br>
+      Work / Writing / Leisure, focus + rest length
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/pomodoro_active.jpg" alt="Pomodoro focus countdown" width="250"><br>
+      <b>Pomodoro focus</b><br>
+      FOCUS Work 1/4 countdown with Pause / End
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/calm.jpg" alt="Calm screen" width="250"><br>
+      <b>Calm SOS</b><br>
+      60 s breathing, 3 min urge surfing, 5-4-3-2-1 grounding
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/media/plants.jpg" alt="Plants screen" width="250"><br>
+      <b>Plants</b><br>
+      Light / temp / humidity vs Pothos needs, "Move nearer the window"
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/weather.jpg" alt="Weather screen" width="250"><br>
+      <b>Weather</b><br>
+      Open-Meteo: now, feels-like, wind, rain, sunrise/sunset
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/options.jpg" alt="Screen settings" width="250"><br>
+      <b>Screen settings</b><br>
+      Brightness, accent color, English / Español
+    </td>
+  </tr>
+</table>
 
 <details>
 <summary>🎬 Extra clips pending</summary>
@@ -65,12 +104,11 @@ microphone is live it stays quiet until the call is over.
 <!--
   VIDEO SLOTS: to play inline on GitHub, drag each .mp4 into the GitHub web editor
   on this line (GitHub turns it into a https://github.com/user-attachments/assets/...
-  link), or see docs/media/README.md. Local .mp4 files in docs/media/ are linked as fallback.
+  link). Demos already covered by GIFs above; add new clips only.
 -->
 
 ### 1. Overview — done
 ![Overview](docs/media/demo_overview.gif)
-Full quality: [video_desktop.mp4](docs/media/video_desktop.mp4)
 
 ### 2. Moods, tilt and petting
 > 🎬 **Video pending**: *moods, eyes following the tilt (IMU), dizzy on shake, petting with the touch sensor.*
@@ -83,7 +121,6 @@ Full quality: [video_desktop.mp4](docs/media/video_desktop.mp4)
 
 ### 5. Voice assistant and PC control — done
 ![Voice chat](docs/media/demo_chatbot.gif)
-Full quality: [chatbot_desktop.mp4](docs/media/chatbot_desktop.mp4)
 
 ### 6. Language switch
 > 🎬 **Video pending**: *changing English ↔ Español on the Screen page (see photo above).*

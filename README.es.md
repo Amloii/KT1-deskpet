@@ -12,9 +12,9 @@
 ESP32-S3 · pantalla táctil de 2,8" · voz · sensores · compañero para Windows
 
 <p align="center">
-  <img src="docs/media/deskbot.jpg" alt="KT1 montado en su carcasa, sobre el escritorio" width="600">
+  <img src="docs/media/demo_overview.gif" alt="KT1 en directo sobre el escritorio — vídeo demo" width="480">
 </p>
-<p align="center"><em>KT1 montado en su carcasa de cartón, sobre el escritorio junto al teclado.</em></p>
+<p align="center"><em>KT1 en directo sobre el escritorio — cara, páginas y navegación.</em></p>
 
 ![Arquitectura](docs/media/architecture.svg)
 
@@ -37,27 +37,66 @@ el micro abierto se calla hasta que termina la llamada.
 ## Demo
 
 <p align="center">
-  <img src="docs/media/demo_overview.gif" alt="KT1 sobre el escritorio, cara y páginas" width="48%">
+  <img src="docs/media/deskbot.jpg" alt="KT1 en su carcasa de cartón pintada a mano" width="48%">
   <img src="docs/media/demo_chatbot.gif" alt="KT1 en chat de voz respondiendo" width="48%">
 </p>
-<p align="center"><em>Izquierda: KT1 en el escritorio — cara, páginas y navegación. Derecha: chat de voz — pregunta, pensando, respuesta hablada.<br>Clips a calidad completa: <a href="docs/media/video_desktop.mp4">video_desktop.mp4</a> · <a href="docs/media/chatbot_desktop.mp4">chatbot_desktop.mp4</a></em></p>
+<p align="center"><em>Izquierda: el único e inigualable KT1 — sí, la carcasa es una caja de cartón pintada: sin impresora 3D por aquí, solo personalidad (y mucha pintura azul). Derecha: chat de voz — pregunta, pensando, respuesta hablada.</em></p>
 
 ### Pantallas
 
-| Cara / Reloj | Plan vital del día | Pausa de ejercicio |
-|---|---|---|
-| <img src="docs/media/clock.jpg" alt="Pantalla de reloj" width="250"> | <img src="docs/media/vital.jpg" alt="Pantalla de plan vital" width="250"> | <img src="docs/media/exercise.jpg" alt="Pantalla de ejercicio" width="250"> |
-| Reloj con fecha, mini-icono del tiempo y estado del ciclo Cornell | Elige tu día: Suave 45/3, Cornell clásico 20/8/2, Enfoque 50/10 | Pausa guiada: sentadilla goblet, remo a una mano, press militar |
-
-| Pomodoro ajuste | Pomodoro enfoque | Calma SOS |
-|---|---|---|
-| <img src="docs/media/pomodoro.jpg" alt="Ajuste de pomodoro" width="250"> | <img src="docs/media/pomodoro_active.jpg" alt="Cuenta atrás de enfoque" width="250"> | <img src="docs/media/calm.jpg" alt="Pantalla de calma" width="250"> |
-| Trabajo / Escritura / Ocio, duración de enfoque y descanso | Cuenta atrás FOCUS Trabajo 1/4 con Pausa / Fin | Respiración 60 s, surfear el impulso 3 min, anclaje 5-4-3-2-1 |
-
-| Plantas | Tiempo | Ajustes de pantalla |
-|---|---|---|
-| <img src="docs/media/plants.jpg" alt="Pantalla de plantas" width="250"> | <img src="docs/media/weather.jpg" alt="Pantalla del tiempo" width="250"> | <img src="docs/media/options.jpg" alt="Ajustes de pantalla" width="250"> |
-| Luz / temp / humedad frente a lo que necesita el Poto, "Move nearer the window" | Open-Meteo: actual, sensación, viento, lluvia, sol | Brillo, color de acento, English / Español |
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/media/clock.jpg" alt="Pantalla de reloj" width="250"><br>
+      <b>Cara / Reloj</b><br>
+      Reloj con fecha, mini-icono del tiempo y estado del ciclo Cornell
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/vital.jpg" alt="Pantalla de plan vital" width="250"><br>
+      <b>Plan vital del día</b><br>
+      Elige tu día: Suave 45/3, Cornell clásico 20/8/2, Enfoque 50/10
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/exercise.jpg" alt="Pantalla de ejercicio" width="250"><br>
+      <b>Pausa de ejercicio</b><br>
+      Pausa guiada: sentadilla goblet, remo a una mano, press militar
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/media/pomodoro.jpg" alt="Ajuste de pomodoro" width="250"><br>
+      <b>Pomodoro ajuste</b><br>
+      Trabajo / Escritura / Ocio, duración de enfoque y descanso
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/pomodoro_active.jpg" alt="Cuenta atrás de enfoque" width="250"><br>
+      <b>Pomodoro enfoque</b><br>
+      Cuenta atrás FOCUS Trabajo 1/4 con Pausa / Fin
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/calm.jpg" alt="Pantalla de calma" width="250"><br>
+      <b>Calma SOS</b><br>
+      Respiración 60 s, surfear el impulso 3 min, anclaje 5-4-3-2-1
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/media/plants.jpg" alt="Pantalla de plantas" width="250"><br>
+      <b>Plantas</b><br>
+      Luz / temp / humedad frente a lo que necesita el Poto, "Move nearer the window"
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/weather.jpg" alt="Pantalla del tiempo" width="250"><br>
+      <b>Tiempo</b><br>
+      Open-Meteo: actual, sensación, viento, lluvia, sol
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/media/options.jpg" alt="Ajustes de pantalla" width="250"><br>
+      <b>Ajustes de pantalla</b><br>
+      Brillo, color de acento, English / Español
+    </td>
+  </tr>
+</table>
 
 <details>
 <summary>🎬 Clips extra pendientes</summary>
@@ -66,12 +105,11 @@ el micro abierto se calla hasta que termina la llamada.
   HUECOS PARA VÍDEOS: para reproducirlos integrados en GitHub, arrastra cada .mp4 al
   editor web de GitHub en esta línea (GitHub lo convierte en un enlace
   https://github.com/user-attachments/assets/...), o consulta docs/media/README.md.
-  Los .mp4 locales de docs/media/ se enlazan como alternativa.
+  Las demos ya están cubiertas con los GIF de arriba; añade solo clips nuevos.
 -->
 
 ### 1. Vista general — listo
 ![Vista general](docs/media/demo_overview.gif)
-Calidad completa: [video_desktop.mp4](docs/media/video_desktop.mp4)
 
 ### 2. Estados de ánimo, inclinación y caricias
 > 🎬 **Vídeo pendiente**: *estados de ánimo, ojos que siguen la inclinación (IMU), mareo al agitarlo, caricias con el sensor táctil.*
@@ -84,7 +122,6 @@ Calidad completa: [video_desktop.mp4](docs/media/video_desktop.mp4)
 
 ### 5. Asistente de voz y control del PC — listo
 ![Chat de voz](docs/media/demo_chatbot.gif)
-Calidad completa: [chatbot_desktop.mp4](docs/media/chatbot_desktop.mp4)
 
 ### 6. Cambio de idioma
 > 🎬 **Vídeo pendiente**: *cambio English ↔ Español en la página Pantalla (ver foto de arriba).*
