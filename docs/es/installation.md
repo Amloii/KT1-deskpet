@@ -34,7 +34,7 @@ comprobación, así que si algo falla sabrás exactamente dónde.
 | **TFT_eSPI** + **TFT_eSPI_Setups** | 2.5.43 / Freenove | ZIP del [repositorio de Freenove](https://github.com/Freenove/Freenove_ESP32_S3_Display) (*Sketch → Include Library → Add .ZIP Library*) |
 | **Freenove WS2812 Lib for ESP32** | 2.0.1 | Gestor de librerías o ZIP de Freenove |
 | **ArduinoJson** (Benoit Blanchon) | 7.4.3 | Gestor de librerías (**se requiere la v7**) |
-| **ESP32-audioI2S** (schreibfaul1) | 2.0.0 | ZIP de GitHub. Solo para la voz. Las versiones mayores más nuevas cambiaron la API y puede que no compilen |
+| **ESP32-audioI2S** (schreibfaul1) | 3.0.12 | ZIP de GitHub (rama 3.0.x). Solo para la voz. Desde la 3.1 cambió el constructor y puede que no compile |
 
 No hacen falta: librerías de MPU6050, DHT ni FT6336U (el sketch habla con ellos directamente).
 

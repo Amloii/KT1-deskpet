@@ -11,7 +11,7 @@ línea `[TAG] …` que los explica.
 | `Sketch too big` | Partition Scheme con una app de 3 MB (*16M Flash (3MB APP/9.9MB FATFS)* o *Huge APP*) |
 | Aviso `TOUCH_CS pin not defined` | Inofensivo: el táctil se lee a través del FT6336U, no de TFT_eSPI |
 | Pantalla en blanco/negro | Hay otra pantalla seleccionada en `User_Setup_Select.h`; deja solo `FNK0104AB_2P8_240x320_ILI9341` |
-| Errores en `Audio.h` / `connecttospeech` | Versión incompatible de ESP32-audioI2S: usa la 2.0.0 probada |
+| Errores en `Audio.h` / `connecttospeech` | Versión incompatible de ESP32-audioI2S: usa la 3.0.12 probada (>=3.1 cambió el constructor) |
 | `[TFT] PSRAM NOT detected` / `[CHAT] no PSRAM -> voice OFF` | *Tools → PSRAM → OPI PSRAM* |
 | La Wi-Fi no conecta | Red de 5 GHz (solo funciona la de 2,4 GHz), SSID/contraseña incorrectos, señal débil (mira el RSSI). Si las redes de 2,4 y 5 GHz tienen el mismo nombre y el punto de acceso te expulsa, define `WIFI_BSSID` / `WIFI_CHANNEL` en `secrets.h` |
 | El reloj muestra «Sincronizando» (*Syncing*) | Sin acceso a internet o NTP bloqueado en tu red |

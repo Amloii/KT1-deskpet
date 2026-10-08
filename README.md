@@ -197,7 +197,7 @@ On PowerShell, replace the `cp` line with
 **Option B: Arduino IDE 2.x**
 
 1. Arduino IDE 2.x + **esp32** core 3.x; libraries **TFT_eSPI** (Freenove setup), **ArduinoJson 7**,
-   **Freenove WS2812**, **ESP32-audioI2S 2.0.0**.
+   **Freenove WS2812**, **ESP32-audioI2S 3.0.12**.
 2. In `TFT_eSPI/User_Setup_Select.h` enable only `FNK0104AB_2P8_240x320_ILI9341`.
 3. Copy `firmware/kt1-deskpet/secrets.example.h` → `secrets.h` and fill in Wi-Fi and city.
 4. *ESP32S3 Dev Module* · USB CDC On Boot *Enabled* · PSRAM *OPI* · Flash *16MB* ·

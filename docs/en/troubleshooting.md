@@ -11,7 +11,7 @@ Always start by opening the **Serial Monitor at 115200**: almost every problem p
 | `Sketch too big` | Partition Scheme with a 3 MB app (*16M Flash (3MB APP/9.9MB FATFS)* or *Huge APP*) |
 | `TOUCH_CS pin not defined` warning | Harmless: touch is read through the FT6336U, not TFT_eSPI |
 | White/black screen | Another display selected in `User_Setup_Select.h`; leave only `FNK0104AB_2P8_240x320_ILI9341` |
-| Errors in `Audio.h` / `connecttospeech` | Incompatible ESP32-audioI2S version: use the tested 2.0.0 |
+| Errors in `Audio.h` / `connecttospeech` | Incompatible ESP32-audioI2S version: use the tested 3.0.12 (>=3.1 changed the constructor) |
 | `[TFT] PSRAM NOT detected` / `[CHAT] no PSRAM -> voice OFF` | *Tools → PSRAM → OPI PSRAM* |
 | Wi-Fi does not connect | 5 GHz network (only 2.4 GHz works), wrong SSID/password, weak signal (check RSSI). If 2.4 and 5 GHz share the name and the AP kicks you out, set `WIFI_BSSID` / `WIFI_CHANNEL` in `secrets.h` |
 | Clock shows "Syncing" | No internet access or NTP blocked on your network |

@@ -24,6 +24,9 @@ firmware/**/build/
 .vscode/
 .idea/
 
+# --- PlatformIO ---
+.pio/
+
 # --- OS ---
 Thumbs.db
 Desktop.ini
